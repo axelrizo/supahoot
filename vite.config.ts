@@ -24,4 +24,5 @@ export default defineConfig({
       "@supahoot": supahootPath,
     },
   },
+  base: '/supahoot/',
 })

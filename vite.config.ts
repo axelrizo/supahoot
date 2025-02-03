@@ -25,5 +25,4 @@ export default defineConfig({
     },
   },
   base: '/supahoot/',
-  build: { rollupOptions: { input: { app: './src/lib/supahoot-web/index.html' } } }
 })

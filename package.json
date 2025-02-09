@@ -12,6 +12,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
+    "prettier-watch": "onchange \"**/*\" -- prettier --write --ignore-unknown {{changed}}",
     "ci:lint": "eslint .",
     "ci:format": "prettier --check src/",
     "ci:type-check": "vue-tsc --build"
@@ -35,14 +36,17 @@
     "daisyui": "^5.0.0-beta.6",
     "eslint": "^9.18.0",
     "eslint-plugin-vue": "^9.32.0",
+    "happy-dom": "^17.0.2",
     "jiti": "^2.4.2",
     "jsdom": "^26.0.0",
     "npm-run-all2": "^7.0.2",
+    "onchange": "^7.1.0",
     "prettier": "^3.4.2",
     "typescript": "~5.7.3",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.0",
     "vitest": "^3.0.2",
+    "vue-router-mock": "^1.1.0",
     "vue-tsc": "^2.2.0"
   }
 }

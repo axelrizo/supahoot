@@ -6,9 +6,11 @@ const { lobbyService } = inject('container') as { lobbyService: LobbyService }
 
 const lobbyName = ref('')
 const isFormVisible = ref(false)
+const lobbies = ref<null[]>([])
 
 const createLobby = () => {
   lobbyService.create()
+  lobbies.value.push(null)
 }
 const openCreateLobbyModal = () => {
   isFormVisible.value = true
@@ -25,5 +27,7 @@ const openCreateLobbyModal = () => {
     </form>
   </div>
 
-  <div data-testid="lobby-card">My Lobby</div>
+  <div>
+    <div v-for="(lobby, index) in lobbies" :key="index" data-testid="lobby-card">My Lobby</div>
+  </div>
 </template>

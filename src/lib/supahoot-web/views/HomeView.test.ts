@@ -25,4 +25,10 @@ describe('HomeView', () => {
 
     expect(wrapper.find(lobbyHelpers.createModal).attributes('class')).not.toContain('hidden')
   })
+
+  test("success: lobby should be empty when user don't create any lobby", () => {
+    const wrapper = mount(HomeView)
+
+    expect(wrapper.find(lobbyHelpers.card).exists()).toBe(false)
+  })
 })

@@ -30,3 +30,6 @@ coverage
 *.tsbuildinfo
 
 test-results/
+
+# ignore environment files
+.envrc

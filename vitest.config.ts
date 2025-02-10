@@ -6,9 +6,15 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      environment: 'jsdom',
-      exclude: [...configDefaults.exclude, 'e2e/**'],
+      environment: 'happy-dom',
+      exclude: configDefaults.exclude,
+      include: ['src/**/*.test.ts'],
       root: fileURLToPath(new URL('./', import.meta.url)),
+      setupFiles: [
+        './src/test/support/setup-router-mock.ts',
+        './src/test/support/setup-container-mock.ts',
+      ],
+      globals: true,
     },
   }),
 )

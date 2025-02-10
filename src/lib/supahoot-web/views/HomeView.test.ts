@@ -31,4 +31,15 @@ describe('HomeView', () => {
 
     expect(wrapper.find(lobbyHelpers.card).exists()).toBe(false)
   })
+
+  test('success: lobby should display new lobby name when user create a new one', async () => {
+    const newLobbyName = 'New Lobby'
+    const wrapper = mount(HomeView)
+
+    await wrapper.find(lobbyHelpers.createButton).trigger('click')
+    await wrapper.find(lobbyHelpers.nameInput).setValue(newLobbyName)
+    await wrapper.find(lobbyHelpers.createForm).trigger('submit')
+
+    expect(wrapper.find(lobbyHelpers.card).text()).toContain(newLobbyName)
+  })
 })

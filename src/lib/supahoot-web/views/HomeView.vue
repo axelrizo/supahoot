@@ -12,7 +12,7 @@ const lobbies = ref<string[]>([])
 
 const createLobby = async () => {
   try {
-    await lobbyService.create()
+    await lobbyService.create({ name: lobbyName.value })
     lobbies.value.push(lobbyName.value)
     isFormVisible.value = false
   } catch (_error) {
@@ -28,7 +28,7 @@ const openCreateLobbyModal = () => {
   <button data-testid="create-lobby-button" v-on:click="openCreateLobbyModal">Create Lobby</button>
 
   <div data-testid="lobby-create-modal" :class="{ hidden: !isFormVisible }">
-    <form data-testid="lobby-form" v-on:submit="createLobby">
+    <form data-testid="lobby-form" v-on:submit.prevent="createLobby">
       <input type="text" data-testid="lobby-name-input" v-model="lobbyName" />
       <input type="submit" value="Submit" />
     </form>

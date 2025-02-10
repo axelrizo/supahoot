@@ -1,3 +1,3 @@
 export interface LobbyService {
-  create: () => Promise<void>
+  create: ({ name }: { name: string }) => Promise<void>
 }

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import { inject, ref } from 'vue'
+import type { notificationProvider } from '../App.vue'
 
 const { lobbyService } = inject('container') as ServicesContainer
+const { showNotification } = inject('notificationProvider') as notificationProvider
 
 const lobbyName = ref('')
 const isFormVisible = ref(false)
@@ -12,7 +14,9 @@ const createLobby = async () => {
   try {
     await lobbyService.create()
     lobbies.value.push(lobbyName.value)
-  } catch (_error) {}
+  } catch (_error) {
+    showNotification('Error: Lobby creation failed')
+  }
 }
 const openCreateLobbyModal = () => {
   isFormVisible.value = true

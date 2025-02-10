@@ -8,4 +8,8 @@ export const container = {
   lobbyService: new MockLobbyService(),
 }
 
-config.global.provide = { container }
+export const notificationProvider = {
+  showNotification: vi.fn(),
+}
+
+config.global.provide = { container, notificationProvider }

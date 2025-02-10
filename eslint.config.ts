@@ -27,6 +27,22 @@ export default defineConfigWithVueTs(
     files: ['src/**/__tests__/*'],
   },
 
-
   skipFormatting,
+
+  {
+    rules: {
+      // Remove error when not used variable with underscore
+      // note you must disable the base rule
+      // as it can report incorrect errors
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
 )

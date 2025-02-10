@@ -12,16 +12,12 @@ const supahootPath = path.join(sourcePath, 'lib', 'supahoot')
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-    tailwindcss()
-  ],
+  plugins: [vue(), vueDevTools(), tailwindcss()],
   resolve: {
     alias: {
       '@': sourcePath,
       '@supahoot-web': supahootWebPath,
-      "@supahoot": supahootPath,
+      '@supahoot': supahootPath,
     },
   },
   base: '/supahoot/',

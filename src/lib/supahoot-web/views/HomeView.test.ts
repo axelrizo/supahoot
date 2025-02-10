@@ -1,9 +1,23 @@
-import { expect, test } from 'vitest'
+import HomeView from '@supahoot-web/views/HomeView.vue'
+import { mount } from '@vue/test-utils'
 
-export function sum(a: number, b: number): number {
-  return a + b
-}
+const MockLobbyService = vi.fn()
+MockLobbyService.prototype.create = vi.fn()
 
-test('adds 1 + 2 to equal 3', () => {
-  expect(sum(1, 2)).toBe(3)
+describe('HomeView', () => {
+  test('success: connect with service when submit form', () => {
+    const lobbyService = new MockLobbyService()
+
+    const wrapper = mount(HomeView, {
+      global: {
+        provide: {
+          container: {
+            lobbyService: lobbyService,
+          },
+        },
+      },
+    })
+    wrapper.find('[data-testid="lobby-form"]').trigger('submit')
+    expect(lobbyService.create).toHaveBeenCalled()
+  })
 })

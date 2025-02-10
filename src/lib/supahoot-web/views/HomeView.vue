@@ -14,6 +14,7 @@ const createLobby = async () => {
   try {
     await lobbyService.create()
     lobbies.value.push(lobbyName.value)
+    isFormVisible.value = false
   } catch (_error) {
     showNotification('Error: Lobby creation failed')
   }

@@ -37,6 +37,12 @@ describe('HomeView', () => {
     expect(wrapper.find(lobbyHelpers.card).text()).toContain(NEW_LOBBY)
   })
 
+  test('success: modal should be closed after submit', async () => {
+    await lobbyHelpers.openFillAndSubmitForm(wrapper, NEW_LOBBY)
+
+    expect(wrapper.find(lobbyHelpers.createModal).attributes('class')).toContain('hidden')
+  })
+
   test('error: lobby name is not displayed when lobby service fail', async () => {
     container.lobbyService.create.mockRejectedValue(new Error('Error'))
 

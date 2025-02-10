@@ -42,4 +42,17 @@ describe('HomeView', () => {
 
     expect(wrapper.find(lobbyHelpers.card).text()).toContain(newLobbyName)
   })
+
+  test('error: lobby name is not displayed when lobby service fail', async () => {
+    const newLobby = 'newLobby'
+    const wrapper = mount(HomeView)
+
+    container.lobbyService.create.mockRejectedValue(new Error('Error'))
+
+    await wrapper.find(lobbyHelpers.createButton).trigger('click')
+    await wrapper.find(lobbyHelpers.nameInput).setValue(newLobby)
+    await wrapper.find(lobbyHelpers.createForm).trigger('submit')
+
+    expect(wrapper.find(lobbyHelpers.card).exists()).toBe(false)
+  })
 })

@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import type { LobbyService } from '@supahoot/services/lobby-service'
+import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import { inject, ref } from 'vue'
 
-const { lobbyService } = inject('container') as { lobbyService: LobbyService }
+const { lobbyService } = inject('container') as ServicesContainer
 
 const lobbyName = ref('')
 const isFormVisible = ref(false)
 const lobbies = ref<string[]>([])
 
-const createLobby = () => {
-  lobbyService.create()
-  lobbies.value.push(lobbyName.value)
+const createLobby = async () => {
+  try {
+    await lobbyService.create()
+    lobbies.value.push(lobbyName.value)
+  } catch (_error) {}
 }
 const openCreateLobbyModal = () => {
   isFormVisible.value = true

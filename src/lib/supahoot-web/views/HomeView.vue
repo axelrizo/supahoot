@@ -25,12 +25,12 @@ const openCreateLobbyModal = () => {
 </script>
 
 <template>
-  <button data-testid="create-lobby-button" v-on:click="openCreateLobbyModal"></button>
+  <button data-testid="create-lobby-button" v-on:click="openCreateLobbyModal">Create Lobby</button>
 
   <div data-testid="lobby-create-modal" :class="{ hidden: !isFormVisible }">
     <form data-testid="lobby-form" v-on:submit="createLobby">
       <input type="text" data-testid="lobby-name-input" v-model="lobbyName" />
-      <input type="submit" />
+      <input type="submit" value="Submit" />
     </form>
   </div>
 

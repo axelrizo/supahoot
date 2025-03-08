@@ -21,6 +21,9 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Build project
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
         run: npm run build
 
       - name: Upload production-ready build files
@@ -34,10 +37,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    env:
-      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_KEY: ${{ vars.VITE_SUPABASE_KEY }}
-
+      
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4

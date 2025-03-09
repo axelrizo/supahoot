@@ -27,7 +27,6 @@ const createLobby = async (quizId: number) => {
 </script>
 
 <template>
-  <div>hola</div>
   <div v-for="quiz in quizzes" :key="quiz.id">
     <h1 data-testid="quiz-title">{{ quiz.name }}</h1>
     <button data-testid="initialize-quiz-button" v-on:click="createLobby(quiz.id)">

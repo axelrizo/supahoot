@@ -21,7 +21,7 @@ const createLobby = async (quizId: number) => {
     const lobby = await quizService.createLobby(quizId)
     router.push(`admin/lobby/${lobby.id}`)
   } catch (_error) {
-    showNotification("Error: Failed to create lobby")
+    showNotification('Error: Failed to create lobby')
   }
 }
 </script>

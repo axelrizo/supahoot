@@ -46,6 +46,8 @@ describe('AdminView when quizzes provided and lobby creation fails', () => {
   test('error: show notification when lobby creation fails', async () => {
     await wrapper.find(quizHelpers.initializeQuizButton).trigger('click')
 
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith('Error: Failed to create lobby')
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+      'Error: Failed to create lobby',
+    )
   })
 })

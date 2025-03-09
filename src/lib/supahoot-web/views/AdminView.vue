@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { ref, inject } from 'vue'
-import type { notificationProvider } from '@supahoot-web/App.vue'
+import { inject, onMounted, ref } from 'vue'
 import type { ServicesContainer } from '@supahoot/services/container'
-import { useRouter } from 'vue-router'
+import type { Quiz } from '@supahoot/quizzes/quiz'
 
-const { authService } = inject('container') as ServicesContainer
-const { showNotification } = inject('notificationProvider') as notificationProvider
-const router = useRouter()
+const { quizService } = inject('container') as ServicesContainer
 
-const secretWord = ref('')
-const verifyWord = () => {
-  const isValidSecretWord = authService.verifyAdminSecretWord(secretWord.value)
-  if (!isValidSecretWord) return showNotification('Error: Incorrect secret word')
-  router.push('/admin/init-quiz')
-}
+const quizzes = ref<Quiz[]>([])
+
+onMounted(async () => {
+  console.log(await quizService.getQuizzes());
+  quizzes.value = await quizService.getQuizzes()
+
+})
 </script>
 
 <template>
-  <input v-model="secretWord" type="text" data-testid="secret-word-input" />
-  <button v-on:click="verifyWord()" data-testid="verify-secret-word-button">Submit</button>
-  <button data-testid="create-quiz-button">Create Quiz</button>
+  <div v-for="quiz in quizzes" :key="quiz.id" data-testid="quiz-title">
+    {{ quiz.name }}
+  </div>
 </template>

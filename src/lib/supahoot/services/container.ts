@@ -1,14 +1,14 @@
-import type { AuthService } from './auth-service'
-import { RealAuthService } from './auth-services/real-auth-service'
-import type { LobbyService } from './lobby-service'
-import { SupabaseLobbyService } from './lobby-services/supabase-lobby-service'
+import type { LobbyService } from '@supahoot/services/lobby-service'
+import { SupabaseLobbyService } from '@supahoot/services/lobby-services/supabase-lobby-service'
+import type { QuizService } from '@supahoot/services/quiz-service'
+import { SupabaseQuizService } from '@supahoot/services/quiz-services/supabase-quiz-service'
 
 export interface ServicesContainer {
   lobbyService: LobbyService
-  authService: AuthService
+  quizService: QuizService
 }
 
 export const container: ServicesContainer = {
   lobbyService: new SupabaseLobbyService(),
-  authService: new RealAuthService(),
+  quizService: new SupabaseQuizService(),
 }

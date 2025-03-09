@@ -4,12 +4,12 @@ import { vi } from 'vitest'
 const MockLobbyService = vi.fn()
 MockLobbyService.prototype.create = vi.fn()
 
-const MockAuthService = vi.fn()
-MockAuthService.prototype.verifyAdminSecretWord = vi.fn()
+const MockQuizService = vi.fn()
+MockQuizService.prototype.getQuizzes = vi.fn()
 
 export const container = {
   lobbyService: new MockLobbyService(),
-  authService: new MockAuthService(),
+  quizService: new MockQuizService(),
 }
 
 export const notificationProvider = {

@@ -1,6 +1,6 @@
 import { quizHelpers } from '@/test/support/quiz-helpers'
 import { container, notificationProvider } from '@/test/support/setup-container-mock'
-import { mount, VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import AdminView from './AdminView.vue'
 
 let wrapper: VueWrapper

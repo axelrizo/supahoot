@@ -6,6 +6,7 @@ MockLobbyService.prototype.create = vi.fn()
 
 const MockQuizService = vi.fn()
 MockQuizService.prototype.getQuizzes = vi.fn()
+MockQuizService.prototype.createLobby = vi.fn()
 
 export const container = {
   lobbyService: new MockLobbyService(),

@@ -12,7 +12,7 @@ const secretWord = ref('')
 const verifyWord = () => {
   const isValidSecretWord = authService.verifyAdminSecretWord(secretWord.value)
   if (!isValidSecretWord) return showNotification('Error: Incorrect secret word')
-  router.push("/admin/init-quiz")
+  router.push('/admin/init-quiz')
 }
 </script>
 

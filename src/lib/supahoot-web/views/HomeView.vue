@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import { inject, ref } from 'vue'
-import type { notificationProvider } from '@supahoot-web/App.vue'
+import type { NotificationProvider } from '@supahoot-web/App.vue'
 
 const { lobbyService } = inject('container') as ServicesContainer
-const { showNotification } = inject('notificationProvider') as notificationProvider
+const { showNotification } = inject('notificationProvider') as NotificationProvider
 
 const lobbyName = ref('')
 const isFormVisible = ref(false)

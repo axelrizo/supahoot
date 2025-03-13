@@ -3,11 +3,11 @@ import { container } from '@supahoot/services/container'
 import { provide } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 
-export type notificationProvider = {
+export type NotificationProvider = {
   showNotification: (message: string) => void
 }
 
-const notificationProvider: notificationProvider = {
+const notificationProvider: NotificationProvider = {
   showNotification: (message: string) => alert(message),
 }
 

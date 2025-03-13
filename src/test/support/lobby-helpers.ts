@@ -1,4 +1,4 @@
-import { testId } from '@/test/support/test-utils'
+import { testId } from '@/test/support/utils/html-utils'
 import type { VueWrapper } from '@vue/test-utils'
 
 const openFillAndSubmitForm = async (wrapper: VueWrapper, lobbyName: string) => {

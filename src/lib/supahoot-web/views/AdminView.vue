@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import { ref, inject } from 'vue'
-import type { notificationProvider } from '@supahoot-web/App.vue'
+import type { Quiz } from '@supahoot/quizzes/quiz'
 import type { ServicesContainer } from '@supahoot/services/container'
+import { inject, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import type { NotificationProvider } from '../App.vue'
 
-const { authService } = inject('container') as ServicesContainer
-const { showNotification } = inject('notificationProvider') as notificationProvider
+const { quizService } = inject('container') as ServicesContainer
+const { showNotification } = inject('notificationProvider') as NotificationProvider
+
 const router = useRouter()
 
-const secretWord = ref('')
-const verifyWord = () => {
-  const isValidSecretWord = authService.verifyAdminSecretWord(secretWord.value)
-  if (!isValidSecretWord) return showNotification('Error: Incorrect secret word')
-  router.push('/admin/init-quiz')
+const quizzes = ref<Quiz[]>([])
+
+onMounted(async () => {
+  quizzes.value = await quizService.getQuizzes()
+})
+
+const createLobby = async (quizId: number) => {
+  try {
+    const lobby = await quizService.createLobby(quizId)
+    router.push(`admin/lobby/${lobby.id}`)
+  } catch (_error) {
+    showNotification('Error: Failed to create lobby')
+  }
 }
 </script>
 
 <template>
-  <input v-model="secretWord" type="text" data-testid="secret-word-input" />
-  <button v-on:click="verifyWord()" data-testid="verify-secret-word-button">Submit</button>
-  <button data-testid="create-quiz-button">Create Quiz</button>
+  <div v-for="quiz in quizzes" :key="quiz.id">
+    <h1 data-testid="quiz-title">{{ quiz.name }}</h1>
+    <button data-testid="initialize-quiz-button" v-on:click="createLobby(quiz.id)">
+      Initialize
+    </button>
+  </div>
 </template>

@@ -13,6 +13,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "prettier-watch": "onchange \"**/*\" -- prettier --write --ignore-unknown {{changed}}",
+    "supabase:generate-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > ./database.types.ts",
     "ci:lint": "eslint .",
     "ci:format": "prettier --check src/",
     "ci:type-check": "vue-tsc --build"
@@ -43,6 +44,7 @@
     "npm-run-all2": "^7.0.2",
     "onchange": "^7.1.0",
     "prettier": "^3.4.2",
+    "supabase": "^2.19.6",
     "typescript": "~5.7.3",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.0",

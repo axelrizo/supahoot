@@ -1,6 +1,6 @@
 import type { Lobby } from '@/lib/supahoot/quizzes/lobby'
 import type { Quiz } from '@/lib/supahoot/quizzes/quiz'
-import { quizHelpers } from '@/test/support/quiz-helpers'
+import { quizHelpers } from '@/test/support/utils/quiz-utils'
 import { container, notificationProvider } from '@/test/support/setup-container-mock'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import AdminView from './AdminView.vue'

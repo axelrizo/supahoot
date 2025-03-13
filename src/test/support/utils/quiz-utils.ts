@@ -1,4 +1,4 @@
-import { testId } from './utils/html-utils'
+import { testId } from './html-utils'
 
 export const quizHelpers = {
   quizTitle: testId('quiz-title'),

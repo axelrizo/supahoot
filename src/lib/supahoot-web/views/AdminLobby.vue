@@ -2,7 +2,7 @@
 import type { Player } from '@/lib/supahoot/quizzes/player'
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import QrcodeVue from 'qrcode.vue'
-import { inject, onMounted, ref } from 'vue'
+import { inject, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const container = inject<ServicesContainer>('container')!
@@ -19,6 +19,13 @@ const players = ref<Player[]>([])
 
 onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
+  container.quizService.startListeningNewPlayers((value) => {
+    players.value.push(value)
+  })
+})
+
+onUnmounted(() => {
+  container.quizService.stopListeningNewPlayers()
 })
 </script>
 

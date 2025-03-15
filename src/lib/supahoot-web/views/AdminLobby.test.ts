@@ -12,6 +12,9 @@ beforeEach(() => {
   container.quizService.getPlayersByLobby.mockResolvedValue([
     { id: 1, username: 'user1', image: 'img1' },
   ])
+  container.quizService.startListeningNewPlayers.mockImplementation((cb) => {
+    cb({ id: 2, username: 'user2', image: 'img2' })
+  })
 
   router = getRouter()
   router.addRoute({ path: '/lobby/:lobbyId', name: 'user-lobby', component: MockComponent })
@@ -46,5 +49,17 @@ describe('AdminLobby', () => {
         .get("[data-testid='player-image']")
         .attributes('src'),
     ).toBe('img1')
+  })
+
+  test('success: print all players that comes from service', () => {
+    expect(
+      wrapper.findAll("[data-testid='player']")[1].get("[data-testid='player-username']").text(),
+    ).toContain('user2')
+  })
+
+  test('success: when unmounted, stop listening for new players', () => {
+    wrapper.unmount()
+
+    expect(container.quizService.stopListeningNewPlayers).toHaveBeenCalled()
   })
 })

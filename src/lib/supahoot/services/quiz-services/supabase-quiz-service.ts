@@ -23,7 +23,7 @@ export class SupabaseQuizService implements QuizService {
 
   async getPlayersByLobby(_lobbyId: number): Promise<Player[]> {
     const response = await supabase.from('players').select('*')
-    console.log('🚀 ~ response:', response)
+
     if (response.error) throw new Error(response.error.message)
 
     return response.data as Player[]

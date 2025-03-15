@@ -28,7 +28,7 @@ onMounted(async () => {
   <div>
     <div data-testid="player" v-for="player in players" :key="player.id">
       <p data-testid="player-username">{{ player.username }}</p>
-      <img data-testid="player-image" :src="player.img" />
+      <img data-testid="player-image" :src="player.image" />
     </div>
   </div>
 </template>

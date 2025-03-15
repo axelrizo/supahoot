@@ -10,7 +10,7 @@ let router: RouterMock
 
 beforeEach(() => {
   container.quizService.getPlayersByLobby.mockResolvedValue([
-    { id: 1, username: 'user1', img: 'img1' },
+    { id: 1, username: 'user1', image: 'img1' },
   ])
 
   router = getRouter()

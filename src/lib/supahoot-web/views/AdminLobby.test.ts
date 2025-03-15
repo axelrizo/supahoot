@@ -4,6 +4,8 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
+import type { Player } from '@/lib/supahoot/quizzes/player'
+import { testId } from '@/test/support/utils/html-utils'
 
 let wrapper: VueWrapper
 let router: RouterMock
@@ -12,9 +14,11 @@ beforeEach(() => {
   container.quizService.getPlayersByLobby.mockResolvedValue([
     { id: 1, username: 'user1', image: 'img1' },
   ])
-  container.quizService.startListeningNewPlayers.mockImplementation((cb) => {
-    cb({ id: 2, username: 'user2', image: 'img2' })
-  })
+  container.quizService.startListeningForNewPlayers.mockImplementation(
+    (cb: (player: Player) => void) => {
+      cb({ id: 2, username: 'user2', image: 'img2' })
+    },
+  )
 
   router = getRouter()
   router.addRoute({ path: '/lobby/:lobbyId', name: 'user-lobby', component: MockComponent })
@@ -25,7 +29,7 @@ beforeEach(() => {
 
 describe('AdminLobby', () => {
   test('success: lobby render id', () => {
-    expect(wrapper.get("[data-testid='lobby-id']").text()).toBe('Lobby ID: 1')
+    expect(wrapper.get(testId('lobby-id')).text()).toBe('Lobby ID: 1')
   })
 
   test('success: qr component is initialized with correct params', () => {
@@ -37,29 +41,26 @@ describe('AdminLobby', () => {
   })
 
   test('success: read players of the lobby', () => {
-    expect(
-      wrapper.findAll("[data-testid='player']")[0].get("[data-testid='player-username']").text(),
-    ).toContain('user1')
+    expect(wrapper.findAll(testId('player'))[0].get(testId('player-username')).text()).toContain(
+      'user1',
+    )
   })
 
   test("success: print player's image", () => {
-    expect(
-      wrapper
-        .findAll("[data-testid='player']")[0]
-        .get("[data-testid='player-image']")
-        .attributes('src'),
-    ).toBe('img1')
+    expect(wrapper.findAll(testId('player'))[0].get(testId('player-image')).attributes('src')).toBe(
+      'img1',
+    )
   })
 
   test('success: print all players that comes from service', () => {
-    expect(
-      wrapper.findAll("[data-testid='player']")[1].get("[data-testid='player-username']").text(),
-    ).toContain('user2')
+    expect(wrapper.findAll(testId('player'))[1].get(testId('player-username')).text()).toContain(
+      'user2',
+    )
   })
 
   test('success: when unmounted, stop listening for new players', () => {
     wrapper.unmount()
 
-    expect(container.quizService.stopListeningNewPlayers).toHaveBeenCalled()
+    expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalled()
   })
 })

@@ -19,13 +19,13 @@ const players = ref<Player[]>([])
 
 onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
-  container.quizService.startListeningNewPlayers((value) => {
+  container.quizService.startListeningForNewPlayers((value) => {
     players.value.push(value)
   })
 })
 
 onUnmounted(() => {
-  container.quizService.stopListeningNewPlayers()
+  container.quizService.stopListeningForNewPlayers()
 })
 </script>
 

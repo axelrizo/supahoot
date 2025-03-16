@@ -5,21 +5,33 @@ import { useRoute } from 'vue-router'
 
 const container = inject<ServicesContainer>('container')!
 
-const playerUsername = ref('')
-
 const route = useRoute()
 
 const lobbyId = parseInt(route.params.lobbyId as string)
 
+const playerUsername = ref('')
+const playerAvatar = ref('')
+
 const submitPlayer = () => {
   container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value)
+}
+
+const handleInput = async (_event: Event) => {
+  const avatar = await container.quizService.generatePlayerAvatar(playerUsername.value)
+  playerAvatar.value = avatar
 }
 </script>
 
 <template>
   <div>
     <form v-on:submit.prevent="submitPlayer" data-testid="player-form">
-      <input type="text" v-model="playerUsername" data-testid="player-username-input" />
+      <img data-testid="player-avatar" :src="playerAvatar" />
+      <input
+        type="text"
+        v-on:input="handleInput"
+        v-model="playerUsername"
+        data-testid="player-username-input"
+      />
       <input type="submit" data-testid="player-submit" />
     </form>
   </div>

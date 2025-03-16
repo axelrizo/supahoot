@@ -8,6 +8,7 @@ MockQuizService.prototype.getPlayersByLobby = vi.fn()
 MockQuizService.prototype.startListeningForNewPlayers = vi.fn()
 MockQuizService.prototype.stopListeningForNewPlayers = vi.fn()
 MockQuizService.prototype.createPlayerByLobbyId = vi.fn()
+MockQuizService.prototype.generatePlayerAvatar = vi.fn()
 
 export const container = {
   quizService: new MockQuizService(),

@@ -1,5 +1,6 @@
-import { default as AdminLobby, default as PlayersLobby } from '@supahoot-web/views/AdminLobby.vue'
+import AdminLobby from '@supahoot-web/views/AdminLobby.vue'
 import AdminView from '@supahoot-web/views/AdminView.vue'
+import PlayersLobby from '@supahoot-web/views/PlayersLobby.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({

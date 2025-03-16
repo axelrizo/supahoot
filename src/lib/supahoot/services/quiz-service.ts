@@ -9,4 +9,5 @@ export interface QuizService {
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void): void
   stopListeningForNewPlayers(lobbyId: number): Promise<void>
   createPlayerByLobbyId(lobbyId: number, username: string): Promise<Player>
+  generatePlayerAvatar(userName: string): Promise<string>
 }

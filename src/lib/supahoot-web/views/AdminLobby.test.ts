@@ -1,11 +1,11 @@
+import type { Player } from '@/lib/supahoot/quizzes/player'
 import MockComponent from '@/test/support/MockComponent.vue'
-import { container } from '@/test/support/setup-container-mock'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { container, notificationProvider } from '@/test/support/setup-container-mock'
+import { testId } from '@/test/support/utils/html-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
-import type { Player } from '@/lib/supahoot/quizzes/player'
-import { testId } from '@/test/support/utils/html-utils'
 
 let wrapper: VueWrapper
 let router: RouterMock
@@ -15,7 +15,7 @@ beforeEach(() => {
     { id: 1, username: 'user1', image: 'img1' },
   ])
   container.quizService.startListeningForNewPlayers.mockImplementation(
-    (cb: (player: Player) => void) => {
+    (_lobbyId: number, cb: (player: Player) => void) => {
       cb({ id: 2, username: 'user2', image: 'img2' })
     },
   )
@@ -58,9 +58,20 @@ describe('AdminLobby', () => {
     )
   })
 
-  test('success: when unmounted, stop listening for new players', () => {
+  test('success: stop listening for new players when unmounted', () => {
     wrapper.unmount()
 
-    expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalled()
+    expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalledWith(1)
+  })
+
+  test('error: send error when stop listening for new players fails', async () => {
+    container.quizService.stopListeningForNewPlayers.mockRejectedValue(
+      new Error('Failed to unsubscribe'),
+    )
+
+    wrapper.unmount()
+    await flushPromises()
+
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith('Failed to unsubscribe')
   })
 })

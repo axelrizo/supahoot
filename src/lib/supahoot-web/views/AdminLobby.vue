@@ -4,8 +4,10 @@ import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import QrcodeVue from 'qrcode.vue'
 import { inject, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import type { NotificationProvider } from '../App.vue'
 
 const container = inject<ServicesContainer>('container')!
+const notificationProvider = inject<NotificationProvider>('notificationProvider')!
 
 const route = useRoute()
 const router = useRouter()
@@ -19,13 +21,19 @@ const players = ref<Player[]>([])
 
 onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
-  container.quizService.startListeningForNewPlayers((value) => {
+  container.quizService.startListeningForNewPlayers(lobbyId, (value) => {
     players.value.push(value)
   })
 })
 
-onUnmounted(() => {
-  container.quizService.stopListeningForNewPlayers()
+onUnmounted(async () => {
+  try {
+    await container.quizService.stopListeningForNewPlayers(lobbyId)
+  } catch (error) {
+    if (error instanceof Error) {
+      notificationProvider.showNotification(error.message)
+    }
+  }
 })
 </script>
 

@@ -15,7 +15,8 @@ const router = useRouter()
 const lobbyId = parseInt(route.params.lobbyId as string)
 
 const lobbyNamedRoute = { name: 'user-lobby', params: { lobbyId: lobbyId } }
-const link = router.resolve(lobbyNamedRoute).fullPath
+const lobbyHref = router.resolve(lobbyNamedRoute).href
+const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
 const players = ref<Player[]>([])
 
@@ -39,7 +40,7 @@ onUnmounted(async () => {
 
 <template>
   <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
-  <QrcodeVue :value="link" data-testid="qr-code" />
+  <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
   <div>
     <div data-testid="player" v-for="player in players" :key="player.id">
       <p data-testid="player-username">{{ player.username }}</p>

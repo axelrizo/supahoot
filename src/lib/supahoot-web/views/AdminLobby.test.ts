@@ -33,11 +33,15 @@ describe('AdminLobby', () => {
   })
 
   test('success: qr component is initialized with correct params', () => {
-    const expectedPath = router.resolve({ name: 'user-lobby', params: { lobbyId: 1 } }).fullPath
+    const resolvedUserLobbyHref = router.resolve({
+      name: 'user-lobby',
+      params: { lobbyId: 1 },
+    }).href
+    const expectedLink = location.origin + resolvedUserLobbyHref
 
     const path = wrapper.getComponent(Qrcode).props().value
 
-    expect(path).toBe(expectedPath)
+    expect(path).toBe(expectedLink)
   })
 
   test('success: read players of the lobby', () => {

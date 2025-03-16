@@ -21,7 +21,7 @@ beforeEach(() => {
   )
 
   router = getRouter()
-  router.addRoute({ path: '/lobby/:lobbyId', name: 'user-lobby', component: MockComponent })
+  router.addRoute({ path: '/lobby/:lobbyId', name: 'player-lobby', component: MockComponent })
   router.setParams({ lobbyId: 1 })
 
   wrapper = mount(AdminLobby)
@@ -34,7 +34,7 @@ describe('AdminLobby', () => {
 
   test('success: qr component is initialized with correct params', () => {
     const resolvedUserLobbyHref = router.resolve({
-      name: 'user-lobby',
+      name: 'player-lobby',
       params: { lobbyId: 1 },
     }).href
     const expectedLink = location.origin + resolvedUserLobbyHref

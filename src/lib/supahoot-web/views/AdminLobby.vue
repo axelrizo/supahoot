@@ -14,7 +14,7 @@ const router = useRouter()
 
 const lobbyId = parseInt(route.params.lobbyId as string)
 
-const lobbyNamedRoute = { name: 'user-lobby', params: { lobbyId: lobbyId } }
+const lobbyNamedRoute = { name: 'player-lobby', params: { lobbyId: lobbyId } }
 const lobbyHref = router.resolve(lobbyNamedRoute).href
 const lobbyLink = new URL(location.origin + lobbyHref).toString()
 

@@ -12,27 +12,27 @@ export class SupabaseQuizService implements QuizService {
   private channels: Record<string, RealtimeChannel> = {}
 
   async getQuizzes() {
-    const response = await supabase.from('quizzes').select('*')
+    const { error, data } = await supabase.from('quizzes').select('*')
 
-    if (response.error) throw new Error(response.error.message)
+    if (error) throw new Error(error.message)
 
-    return response.data as Quiz[]
+    return data as Quiz[]
   }
 
   async createLobby(quizId: number) {
-    const response = await supabase.from('lobbies').insert({ quiz_id: quizId }).select()
+    const { error, data } = await supabase.from('lobbies').insert({ quiz_id: quizId }).select()
 
-    if (response.error) throw new Error(response.error.message)
+    if (error) throw new Error(error.message)
 
-    return response.data[0] as Lobby
+    return data[0] as Lobby
   }
 
   async getPlayersByLobby(_lobbyId: number): Promise<Player[]> {
-    const response = await supabase.from('players').select('*')
+    const { error, data } = await supabase.from('players').select('*')
 
-    if (response.error) throw new Error(response.error.message)
+    if (error) throw new Error(error.message)
 
-    return response.data as Player[]
+    return data as Player[]
   }
 
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {

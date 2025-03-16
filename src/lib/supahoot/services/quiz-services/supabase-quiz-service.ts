@@ -1,3 +1,6 @@
+import { botttsNeutral } from '@dicebear/collection'
+import { toJpeg } from '@dicebear/converter'
+import { createAvatar } from '@dicebear/core'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Quiz } from '@supahoot/quizzes/quiz'
@@ -64,5 +67,16 @@ export class SupabaseQuizService implements QuizService {
     } catch (_error) {
       throw new Error('Failed to unsubscribe')
     }
+  }
+
+  async generatePlayerAvatar(userName: string) {
+    const avatar = createAvatar(botttsNeutral, { seed: userName })
+    const buffer = await toJpeg(avatar).toArrayBuffer()
+    const uint8Array = new Uint8Array(buffer)
+    return new File([uint8Array], `${userName}.jpeg`, { type: 'image/jpeg' })
+  }
+
+  createPlayerByLobbyId(_lobbyId: number, _username: string): Promise<Player> {
+    throw new Error('Method not implemented.')
   }
 }

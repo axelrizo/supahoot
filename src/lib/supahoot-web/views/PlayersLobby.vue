@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
+import { FileUtils } from '@/lib/supahoot/utils/file.utils'
 import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -18,7 +19,8 @@ const submitPlayer = () => {
 
 const handleInput = async (_event: Event) => {
   const avatar = await container.quizService.generatePlayerAvatar(playerUsername.value)
-  playerAvatar.value = avatar
+
+  playerAvatar.value = await FileUtils.fileToDataURL(avatar)
 }
 </script>
 

@@ -11,23 +11,25 @@ const route = useRoute()
 const lobbyId = parseInt(route.params.lobbyId as string)
 
 const playerUsername = ref('')
-const playerAvatar = ref('')
+const playerAvatarImage = ref('')
+const playerAvatar = ref<File | null>(null)
 
 const submitPlayer = () => {
-  container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value)
+  container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value, playerAvatar.value!)
 }
 
 const handleInput = async (_event: Event) => {
   const avatar = await container.quizService.generatePlayerAvatar(playerUsername.value)
 
-  playerAvatar.value = await FileUtils.fileToDataURL(avatar)
+  playerAvatar.value = avatar
+  playerAvatarImage.value = await FileUtils.fileToDataURL(avatar)
 }
 </script>
 
 <template>
   <div>
     <form v-on:submit.prevent="submitPlayer" data-testid="player-form">
-      <img data-testid="player-avatar" :src="playerAvatar" />
+      <img data-testid="player-avatar" :src="playerAvatarImage" />
       <input
         type="text"
         v-on:input="handleInput"

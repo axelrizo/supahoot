@@ -29,4 +29,15 @@ describe('PlayersLobby', () => {
 
     expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
   })
+
+  test('success: send its username, lobbyId and avatar to service to create the player', async () => {
+    await wrapper.get(testId('player-username-input')).setValue('Player 1')
+    await wrapper.get(testId('player-form')).trigger('submit')
+
+    expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(
+      1,
+      'Player 1',
+      avatarFile,
+    )
+  })
 })

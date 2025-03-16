@@ -8,6 +8,6 @@ export interface QuizService {
   getPlayersByLobby(lobbyId: number): Promise<Player[]>
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void): void
   stopListeningForNewPlayers(lobbyId: number): Promise<void>
-  createPlayerByLobbyId(lobbyId: number, username: string): Promise<Player>
+  createPlayerByLobbyId(lobbyId: number, username: string, avatar: File): Promise<Player>
   generatePlayerAvatar(userName: string): Promise<File>
 }

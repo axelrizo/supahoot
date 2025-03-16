@@ -6,4 +6,6 @@ export interface QuizService {
   getQuizzes(): Promise<Quiz[]>
   createLobby(quizId: number): Promise<Lobby>
   getPlayersByLobby(lobbyId: number): Promise<Player[]>
+  startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void): void
+  stopListeningForNewPlayers(lobbyId: number): Promise<void>
 }

@@ -27,12 +27,14 @@ export class SupabaseQuizService implements QuizService {
     return data[0] as Lobby
   }
 
-  async getPlayersByLobby(_lobbyId: number): Promise<Player[]> {
-    const { error, data } = await supabase.from('players').select('*')
+  async getPlayersByLobby(lobbyId: number): Promise<Player[]> {
+    const { error, data } = await supabase.from('players').select('*').eq("lobby_id", lobbyId)
+
+    const players = data!.map(this.generatePlayerWithAvatar)
 
     if (error) throw new Error(error.message)
 
-    return data as Player[]
+    return players as Player[]
   }
 
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {
@@ -50,7 +52,10 @@ export class SupabaseQuizService implements QuizService {
           filter: `lobby_id=eq.${lobbyId}`,
         },
         (payload) => {
-          handleNewPlayer(payload.new)
+          handleNewPlayer({
+            ...payload.new,
+            image: this.getPlayerAvatarUrl(payload.new),
+          })
         },
       )
       .subscribe()
@@ -76,7 +81,34 @@ export class SupabaseQuizService implements QuizService {
     return new File([uint8Array], `${userName}.jpeg`, { type: 'image/jpeg' })
   }
 
-  createPlayerByLobbyId(_lobbyId: number, _username: string): Promise<Player> {
-    throw new Error('Method not implemented.')
+  async createPlayerByLobbyId(lobbyId: number, username: string, file: File): Promise<Player> {
+    const { error: avatar_error, data: avatar_data } = await supabase.storage
+      .from('player-avatars')
+      .upload(`public/${lobbyId}_${username}.jpeg`, file)
+
+    if (avatar_error) throw new Error(avatar_error.message)
+
+    const { error, data } = await supabase
+      .from('players')
+      .insert({ lobby_id: lobbyId, username, image: avatar_data.path })
+      .select()
+
+    if (error) throw new Error(error.message)
+
+    return data[0] as Player
+  }
+
+
+  private generatePlayerWithAvatar(player: Player) {
+    return {
+      ...player,
+      image: this.getPlayerAvatarUrl(player),
+    }
+  }
+
+  private getPlayerAvatarUrl(player: Player) {
+    const { data: { publicUrl } } = supabase.storage.from('player-avatars').getPublicUrl(player.image)
+
+    return publicUrl
   }
 }

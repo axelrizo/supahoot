@@ -28,7 +28,7 @@ export class SupabaseQuizService implements QuizService {
   }
 
   async getPlayersByLobby(lobbyId: number): Promise<Player[]> {
-    const { error, data } = await supabase.from('players').select('*').eq("lobby_id", lobbyId)
+    const { error, data } = await supabase.from('players').select('*').eq('lobby_id', lobbyId)
 
     const players = data!.map(this.generatePlayerWithAvatar)
 
@@ -98,7 +98,6 @@ export class SupabaseQuizService implements QuizService {
     return data[0] as Player
   }
 
-
   private generatePlayerWithAvatar(player: Player) {
     return {
       ...player,
@@ -107,7 +106,9 @@ export class SupabaseQuizService implements QuizService {
   }
 
   private getPlayerAvatarUrl(player: Player) {
-    const { data: { publicUrl } } = supabase.storage.from('player-avatars').getPublicUrl(player.image)
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('player-avatars').getPublicUrl(player.image)
 
     return publicUrl
   }

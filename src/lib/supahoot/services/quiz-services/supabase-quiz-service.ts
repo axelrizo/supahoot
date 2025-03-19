@@ -65,7 +65,7 @@ export class SupabaseQuizService implements QuizService {
     if (!this.channels[`lobby-${lobbyId}`]) return
 
     try {
-      const result = await this.channels[`lobby-${lobbyId}`].unsubscribe()
+      const result = await supabase.removeChannel(this.channels[`lobby-${lobbyId}`])
       if (result !== 'ok') throw new Error('Failed to unsubscribe')
 
       delete this.channels[`lobby-${lobbyId}`]
@@ -96,6 +96,14 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data[0] as Player
+  }
+
+  async startQuiz(lobbyId: number) {
+    if (!this.channels[`lobby-${lobbyId}`]) {
+      this.channels[`lobby-${lobbyId}`] = supabase.channel(`lobby-${lobbyId}`)
+    }
+
+    await this.channels[`lobby-${lobbyId}`].send({ type: 'broadcast', event: 'start_quiz' })
   }
 
   private generatePlayerWithAvatar(player: Player) {

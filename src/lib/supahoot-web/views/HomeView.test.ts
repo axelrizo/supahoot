@@ -1,6 +1,6 @@
 import MockComponent from '@/test/support/MockComponent.vue'
 import { testId } from '@/test/support/utils/html-utils'
-import Home from '@supahoot-web/views/HomeView.vue'
+import HomeView from '@supahoot-web/views/HomeView.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 
@@ -12,7 +12,7 @@ describe('Home', () => {
     router = getRouter()
     router.addRoute({ path: '/lobby/:lobbyId', name: 'player-lobby', component: MockComponent })
 
-    wrapper = mount(Home)
+    wrapper = mount(HomeView)
   })
 
   test('success: player can join a lobby with the lobby id', async () => {

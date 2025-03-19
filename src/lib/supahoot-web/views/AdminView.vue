@@ -3,7 +3,7 @@ import type { Quiz } from '@supahoot/quizzes/quiz'
 import type { ServicesContainer } from '@supahoot/services/container'
 import { inject, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import type { NotificationProvider } from '../App.vue'
+import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 
 const { quizService } = inject('container') as ServicesContainer
 const { showNotification } = inject('notificationProvider') as NotificationProvider

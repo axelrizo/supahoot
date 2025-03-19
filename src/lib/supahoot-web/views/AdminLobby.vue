@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Player } from '@/lib/supahoot/quizzes/player'
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
-import type { NotificationProvider } from '@supahoot-web/App.vue'
+import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import QrcodeVue from 'qrcode.vue'
 import { inject, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'

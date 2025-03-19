@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NotificationProvider } from '@supahoot-web/App.vue'
+import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import type { ServicesContainer } from '@supahoot/services/container'
 import { FileUtils } from '@supahoot/utils/file.utils'
 import { inject, ref } from 'vue'

@@ -19,6 +19,9 @@
     "ci:type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.2.2",
+    "@dicebear/converter": "^9.2.2",
+    "@dicebear/core": "^9.2.2",
     "@supabase/supabase-js": "^2.48.1",
     "@tailwindcss/vite": "^4.0.3",
     "qrcode.vue": "^3.6.0",

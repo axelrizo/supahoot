@@ -51,7 +51,9 @@ describe('PlayersLobby', () => {
   })
 
   test('error: show notification when player creation fails', async () => {
-    container.quizService.createPlayerByLobbyId.mockRejectedValue(new Error('Error: Failed to create player'))
+    container.quizService.createPlayerByLobbyId.mockRejectedValue(
+      new Error('Error: Failed to create player'),
+    )
 
     await wrapper.get(testId('player-username-input')).setValue('Player 1')
     await wrapper.get(testId('player-form')).trigger('submit')

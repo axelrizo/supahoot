@@ -24,7 +24,11 @@ const submitPlayer = async () => {
   }
 
   try {
-    await container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value, playerAvatar.value!)
+    await container.quizService.createPlayerByLobbyId(
+      lobbyId,
+      playerUsername.value,
+      playerAvatar.value!,
+    )
   } catch (_error) {
     notificationProvider.showNotification('Error: Failed to create player')
   }
@@ -42,7 +46,12 @@ const handleInput = async (_event: Event) => {
   <div>
     <form v-on:submit.prevent="submitPlayer" data-testid="player-form">
       <img data-testid="player-avatar" :src="playerAvatarSource" />
-      <input type="text" v-on:input="handleInput" v-model="playerUsername" data-testid="player-username-input" />
+      <input
+        type="text"
+        v-on:input="handleInput"
+        v-model="playerUsername"
+        data-testid="player-username-input"
+      />
       <input type="submit" data-testid="player-submit" />
     </form>
   </div>

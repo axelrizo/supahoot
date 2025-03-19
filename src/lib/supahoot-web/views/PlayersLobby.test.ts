@@ -1,5 +1,5 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
-import { container } from '@/test/support/setup-container-mock'
+import { container, notificationProvider } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
@@ -38,6 +38,15 @@ describe('PlayersLobby', () => {
       1,
       'Player 1',
       avatarFile,
+    )
+  })
+
+  test('error: username should be at least 4 characters long', async () => {
+    await wrapper.get(testId('player-username-input')).setValue('123')
+    await wrapper.get(testId('player-form')).trigger('submit')
+
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+      'Error: Username should be at least 4 characters long',
     )
   })
 })

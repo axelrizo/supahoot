@@ -30,7 +30,7 @@ export class SupabaseQuizService implements QuizService {
   async getPlayersByLobby(lobbyId: number): Promise<Player[]> {
     const { error, data } = await supabase.from('players').select('*').eq('lobby_id', lobbyId)
 
-    const players = data!.map(this.generatePlayerWithAvatar)
+    const players = data!.map(this.generatePlayerWithAvatar.bind(this))
 
     if (error) throw new Error(error.message)
 

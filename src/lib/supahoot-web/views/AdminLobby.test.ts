@@ -91,6 +91,12 @@ describe('AdminLobby', () => {
     })
   })
 
+  test('success: send a message to the service when a quiz is initialized', async () => {
+    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
+
+    expect(container.quizService.startQuiz).toHaveBeenCalledWith(1)
+  })
+
   test('error: send error when stop listening for new players fails', async () => {
     container.quizService.stopListeningForNewPlayers.mockRejectedValue(
       new Error('Failed to unsubscribe'),

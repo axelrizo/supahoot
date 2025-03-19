@@ -21,6 +21,10 @@ const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
 const players = ref<Player[]>([])
 
+const handleClickLink = () => {
+  container.quizService.startQuiz(lobbyId)
+}
+
 onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
   container.quizService.startListeningForNewPlayers(lobbyId, (player) => {
@@ -51,6 +55,7 @@ onUnmounted(async () => {
     </div>
     <RouterLink
       data-testid="initialize-quiz-button"
+      @click="handleClickLink"
       :to="{ name: 'admin-quiz', params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 } }"
     ></RouterLink>
   </div>

@@ -49,4 +49,15 @@ describe('PlayersLobby', () => {
       'Error: Username should be at least 4 characters long',
     )
   })
+
+  test('error: show notification when player creation fails', async () => {
+    container.quizService.createPlayerByLobbyId.mockRejectedValue(new Error('Error: Failed to create player'))
+
+    await wrapper.get(testId('player-username-input')).setValue('Player 1')
+    await wrapper.get(testId('player-form')).trigger('submit')
+
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+      'Error: Failed to create player',
+    )
+  })
 })

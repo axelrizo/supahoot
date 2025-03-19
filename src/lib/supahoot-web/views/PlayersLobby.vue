@@ -17,13 +17,17 @@ const playerAvatar = ref<File | null>(null)
 
 const playerAvatarSource = ref('')
 
-const submitPlayer = () => {
-  if (playerUsername.value.length <= 3) {
+const submitPlayer = async () => {
+  if (playerUsername.value.length < 4) {
     notificationProvider.showNotification('Error: Username should be at least 4 characters long')
     return
   }
 
-  container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value, playerAvatar.value!)
+  try {
+    await container.quizService.createPlayerByLobbyId(lobbyId, playerUsername.value, playerAvatar.value!)
+  } catch (_error) {
+    notificationProvider.showNotification('Error: Failed to create player')
+  }
 }
 
 const handleInput = async (_event: Event) => {
@@ -38,12 +42,7 @@ const handleInput = async (_event: Event) => {
   <div>
     <form v-on:submit.prevent="submitPlayer" data-testid="player-form">
       <img data-testid="player-avatar" :src="playerAvatarSource" />
-      <input
-        type="text"
-        v-on:input="handleInput"
-        v-model="playerUsername"
-        data-testid="player-username-input"
-      />
+      <input type="text" v-on:input="handleInput" v-model="playerUsername" data-testid="player-username-input" />
       <input type="submit" data-testid="player-submit" />
     </form>
   </div>

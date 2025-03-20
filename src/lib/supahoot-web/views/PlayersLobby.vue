@@ -35,7 +35,7 @@ const submitPlayer = async () => {
 }
 
 const handleInput = async (_event: Event) => {
-  const avatar = await container.quizService.generatePlayerAvatar(playerUsername.value)
+  const avatar = await container.avatarService.generateAvatarByString(playerUsername.value)
 
   playerAvatar.value = avatar
   playerAvatarSource.value = await FileUtils.fileToDataURL(avatar)

@@ -4,9 +4,11 @@ import type { ServicesContainer } from '@supahoot/services/container'
 import { FileUtils } from '@supahoot/utils/file.utils'
 import { inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import type { PlayerProvider } from '../providers/player-provider'
 
 const container = inject<ServicesContainer>('container')!
 const notificationProvider = inject<NotificationProvider>('notificationProvider')!
+const playerProvider = inject<PlayerProvider>('playerProvider')!
 
 const route = useRoute()
 
@@ -24,7 +26,7 @@ const submitPlayer = async () => {
   }
 
   try {
-    await container.quizService.createPlayerByLobbyId(
+    playerProvider.player = await container.quizService.createPlayerByLobbyId(
       lobbyId,
       playerUsername.value,
       playerAvatar.value!,

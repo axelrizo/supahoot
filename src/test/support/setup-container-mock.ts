@@ -22,4 +22,8 @@ export const notificationProvider = {
   showNotification: vi.fn(),
 }
 
-config.global.provide = { container, notificationProvider }
+export const playerProvider = {
+  player: null,
+}
+
+config.global.provide = { container, notificationProvider, playerProvider }

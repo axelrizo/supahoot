@@ -1,5 +1,9 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
-import { container, notificationProvider } from '@/test/support/setup-container-mock'
+import {
+  container,
+  notificationProvider,
+  playerProvider,
+} from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
@@ -40,6 +44,25 @@ describe('PlayersLobby', () => {
       avatarFile,
     )
   })
+
+  test('success: user is stored in user provider after creation', async () => {
+    container.quizService.createPlayerByLobbyId.mockResolvedValue({
+      id: 1,
+      username: 'Player 1',
+      avatar: '/dummy_avatar.png',
+    })
+
+    await wrapper.get(testId('player-username-input')).setValue('Player 1')
+    await wrapper.get(testId('player-form')).trigger('submit')
+
+    expect(playerProvider.player).toEqual({
+      id: 1,
+      username: 'Player 1',
+      avatar: '/dummy_avatar.png',
+    })
+  })
+
+  test('success: redirect player to before quiz starts page', async () => {})
 
   test('error: username should be at least 4 characters long', async () => {
     await wrapper.get(testId('player-username-input')).setValue('123')

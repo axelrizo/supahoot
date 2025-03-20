@@ -1,3 +1,4 @@
+import type { PlayerProvider } from '@/lib/supahoot-web/providers/player-provider'
 import { config } from '@vue/test-utils'
 import { vi } from 'vitest'
 
@@ -22,7 +23,7 @@ export const notificationProvider = {
   showNotification: vi.fn(),
 }
 
-export const playerProvider = {
+export const playerProvider: PlayerProvider = {
   player: null,
 }
 

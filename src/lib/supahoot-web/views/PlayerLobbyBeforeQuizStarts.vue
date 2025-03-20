@@ -17,7 +17,7 @@ if (!player) {
 
 <template>
   <div>
-    <img :src="player?.image" data-testid="player-avatar" />
-    <span data-testid="player-username">{{ player?.username }}</span>
+    <img :src="player!.image" data-testid="player-avatar" />
+    <span data-testid="player-username">{{ player!.username }}</span>
   </div>
 </template>

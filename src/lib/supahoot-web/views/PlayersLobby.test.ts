@@ -1,4 +1,5 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
+import MockComponent from '@/test/support/MockComponent.vue'
 import {
   container,
   notificationProvider,
@@ -20,9 +21,22 @@ vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
 describe('PlayersLobby', () => {
   beforeEach(() => {
     router = getRouter()
-    router.setParams({ lobbyId: 1 })
+
+    router.setParams({ quizId: 1, lobbyId: 1 })
+
+    router.addRoute({
+      path: '/quiz/:quizId/lobby/:lobbyId',
+      name: 'player-lobby-before-quiz-starts',
+      component: MockComponent,
+    })
 
     container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
+
+    container.quizService.createPlayerByLobbyId.mockResolvedValue({
+      id: 1,
+      username: 'Player 1',
+      avatar: '/dummy_avatar.png',
+    })
 
     wrapper = mount(PlayersLobby)
   })
@@ -46,12 +60,6 @@ describe('PlayersLobby', () => {
   })
 
   test('success: user is stored in user provider after creation', async () => {
-    container.quizService.createPlayerByLobbyId.mockResolvedValue({
-      id: 1,
-      username: 'Player 1',
-      avatar: '/dummy_avatar.png',
-    })
-
     await wrapper.get(testId('player-username-input')).setValue('Player 1')
     await wrapper.get(testId('player-form')).trigger('submit')
 
@@ -62,7 +70,15 @@ describe('PlayersLobby', () => {
     })
   })
 
-  test('success: redirect player to before quiz starts page', async () => {})
+  test('success: redirect player to before quiz starts page', async () => {
+    await wrapper.get(testId('player-username-input')).setValue('Player 1')
+    await wrapper.get(testId('player-form')).trigger('submit')
+
+    expect(router.currentRoute.value).toMatchObject({
+      name: 'player-lobby-before-quiz-starts',
+      params: { quizId: '1', lobbyId: '1' },
+    })
+  })
 
   test('error: username should be at least 4 characters long', async () => {
     await wrapper.get(testId('player-username-input')).setValue('123')

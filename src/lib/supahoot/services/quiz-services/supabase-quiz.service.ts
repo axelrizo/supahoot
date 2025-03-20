@@ -1,18 +1,20 @@
-import { botttsNeutral } from '@dicebear/collection'
-import { toJpeg } from '@dicebear/converter'
-import { createAvatar } from '@dicebear/core'
+import type { QuizService } from '@/lib/supahoot/services/quiz.service'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import type { Lobby } from '@supahoot/quizzes/lobby'
+import type { Player } from '@supahoot/quizzes/player'
 import type { Quiz } from '@supahoot/quizzes/quiz'
-import type { QuizService } from '@supahoot/services/quiz-service'
-import { supabase } from '@supahoot/services/supabase-client'
-import type { Player } from '../../quizzes/player'
+import { type Database } from '../../../../../database.types'
 
 export class SupabaseQuizService implements QuizService {
+  private supabase = createClient<Database>(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_KEY,
+  )
   private channels: Record<string, RealtimeChannel> = {}
 
   async getQuizzes() {
-    const { error, data } = await supabase.from('quizzes').select('*')
+    const { error, data } = await this.supabase.from('quizzes').select('*')
 
     if (error) throw new Error(error.message)
 
@@ -20,7 +22,7 @@ export class SupabaseQuizService implements QuizService {
   }
 
   async createLobby(quizId: number) {
-    const { error, data } = await supabase.from('lobbies').insert({ quiz_id: quizId }).select()
+    const { error, data } = await this.supabase.from('lobbies').insert({ quiz_id: quizId }).select()
 
     if (error) throw new Error(error.message)
 
@@ -28,7 +30,7 @@ export class SupabaseQuizService implements QuizService {
   }
 
   async getPlayersByLobby(lobbyId: number): Promise<Player[]> {
-    const { error, data } = await supabase.from('players').select('*').eq('lobby_id', lobbyId)
+    const { error, data } = await this.supabase.from('players').select('*').eq('lobby_id', lobbyId)
 
     const players = data!.map(this.generatePlayerWithAvatar.bind(this))
 
@@ -39,7 +41,7 @@ export class SupabaseQuizService implements QuizService {
 
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {
     if (!this.channels[`lobby-${lobbyId}`]) {
-      this.channels[`lobby-${lobbyId}`] = supabase.channel(`lobby-${lobbyId}`)
+      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
     }
 
     this.channels[`lobby-${lobbyId}`]
@@ -65,7 +67,7 @@ export class SupabaseQuizService implements QuizService {
     if (!this.channels[`lobby-${lobbyId}`]) return
 
     try {
-      const result = await this.channels[`lobby-${lobbyId}`].unsubscribe()
+      const result = await this.supabase.removeChannel(this.channels[`lobby-${lobbyId}`])
       if (result !== 'ok') throw new Error('Failed to unsubscribe')
 
       delete this.channels[`lobby-${lobbyId}`]
@@ -74,21 +76,14 @@ export class SupabaseQuizService implements QuizService {
     }
   }
 
-  async generatePlayerAvatar(userName: string) {
-    const avatar = createAvatar(botttsNeutral, { seed: userName })
-    const buffer = await toJpeg(avatar).toArrayBuffer()
-    const uint8Array = new Uint8Array(buffer)
-    return new File([uint8Array], `${userName}.jpeg`, { type: 'image/jpeg' })
-  }
-
   async createPlayerByLobbyId(lobbyId: number, username: string, file: File): Promise<Player> {
-    const { error: avatar_error, data: avatar_data } = await supabase.storage
+    const { error: avatar_error, data: avatar_data } = await this.supabase.storage
       .from('player-avatars')
       .upload(`public/${lobbyId}_${username}.jpeg`, file)
 
     if (avatar_error) throw new Error(avatar_error.message)
 
-    const { error, data } = await supabase
+    const { error, data } = await this.supabase
       .from('players')
       .insert({ lobby_id: lobbyId, username, image: avatar_data.path })
       .select()
@@ -96,6 +91,14 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data[0] as Player
+  }
+
+  async startQuiz(lobbyId: number) {
+    if (!this.channels[`lobby-${lobbyId}`]) {
+      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
+    }
+
+    await this.channels[`lobby-${lobbyId}`].send({ type: 'broadcast', event: 'start_quiz' })
   }
 
   private generatePlayerWithAvatar(player: Player) {
@@ -108,7 +111,7 @@ export class SupabaseQuizService implements QuizService {
   private getPlayerAvatarUrl(player: Player) {
     const {
       data: { publicUrl },
-    } = supabase.storage.from('player-avatars').getPublicUrl(player.image)
+    } = this.supabase.storage.from('player-avatars').getPublicUrl(player.image)
 
     return publicUrl
   }

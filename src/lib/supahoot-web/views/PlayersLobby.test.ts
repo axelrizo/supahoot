@@ -18,7 +18,7 @@ describe('PlayersLobby', () => {
     router = getRouter()
     router.setParams({ lobbyId: 1 })
 
-    container.quizService.generatePlayerAvatar.mockResolvedValue(avatarFile)
+    container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
 
     wrapper = mount(PlayersLobby)
   })

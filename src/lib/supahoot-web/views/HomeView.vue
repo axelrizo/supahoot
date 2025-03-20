@@ -6,8 +6,8 @@ const router = useRouter()
 
 const lobbyId = ref('')
 
-const handleSubmitForm = () => {
-  router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value } })
+const handleSubmitForm = async () => {
+  await router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value } })
 }
 </script>
 

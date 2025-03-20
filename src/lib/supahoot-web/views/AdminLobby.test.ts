@@ -4,6 +4,7 @@ import { container, notificationProvider } from '@/test/support/setup-container-
 import { testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
+import type { _RouterLinkI } from 'vue-router'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
 
@@ -21,8 +22,19 @@ beforeEach(() => {
   )
 
   router = getRouter()
-  router.addRoute({ path: '/lobby/:lobbyId', name: 'player-lobby', component: MockComponent })
-  router.setParams({ lobbyId: 1 })
+
+  router.addRoute({
+    path: '/quiz/:quizId/lobby/:lobbyId',
+    name: 'player-lobby',
+    component: MockComponent,
+  })
+  router.addRoute({
+    path: '/admin/quiz/:quizId/lobby/:lobbyId/question/:questionOrder',
+    name: 'admin-quiz',
+    component: MockComponent,
+  })
+
+  router.setParams({ quizId: 1, lobbyId: 1 })
 
   wrapper = mount(AdminLobby)
 })
@@ -66,6 +78,23 @@ describe('AdminLobby', () => {
     wrapper.unmount()
 
     expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalledWith(1)
+  })
+
+  test('success: can initialize the quiz', async () => {
+    const path = await wrapper
+      .getComponent<_RouterLinkI>(testId('initialize-quiz-button'))
+      .props('to')
+
+    expect(path).toStrictEqual({
+      name: 'admin-quiz',
+      params: { quizId: 1, lobbyId: 1, questionOrder: 1 },
+    })
+  })
+
+  test('success: send a message to the service when a quiz is initialized', async () => {
+    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
+
+    expect(container.quizService.startQuiz).toHaveBeenCalledWith(1)
   })
 
   test('error: send error when stop listening for new players fails', async () => {

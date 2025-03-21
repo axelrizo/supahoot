@@ -1,5 +1,9 @@
 import MockComponent from '@/test/support/MockComponent.vue'
-import { notificationProvider, playerProvider } from '@/test/support/setup-container-mock'
+import {
+  container,
+  notificationProvider,
+  playerProvider,
+} from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
@@ -10,7 +14,21 @@ let router: RouterMock
 
 describe('PlayerLobbyBeforeQuizStarts', () => {
   beforeEach(() => {
+    router = getRouter()
+    router.setParams({ lobbyId: '1', quizId: '1' })
+    router.addRoute({
+      name: 'player-quizz',
+      path: '/quiz/:quizId/lobby/:lobbyId/question/:questionOrder',
+      component: MockComponent,
+    })
+
     playerProvider.player = { id: 1, username: 'Player 1', image: '/dummy_avatar.png' }
+
+    container.quizService.listenQuizStart.mockImplementation(
+      (_lobbyId: number, callback: () => void) => {
+        callback()
+      },
+    )
 
     wrapper = mount(PlayerLobbyBeforeQuizStarts)
   })
@@ -21,6 +39,13 @@ describe('PlayerLobbyBeforeQuizStarts', () => {
 
   test('success: shows player username', () => {
     expect(wrapper.get(testId('player-username')).text()).toBe('Player 1')
+  })
+
+  test("success: redirect to player's lobby when quiz starts", async () => {
+    expect(router.push).toHaveBeenLastCalledWith({
+      name: 'player-quiz',
+      params: { quizId: 1, lobbyId: 1, questionOrder: 1 },
+    })
   })
 })
 

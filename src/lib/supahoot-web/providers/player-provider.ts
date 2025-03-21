@@ -1,4 +1,4 @@
-import type { Player } from "@/lib/supahoot/quizzes/player"
+import type { Player } from '@/lib/supahoot/quizzes/player'
 
 export interface PlayerProvider {
   player: null | Player
@@ -7,4 +7,3 @@ export interface PlayerProvider {
 export const playerProvider: PlayerProvider = {
   player: null,
 }
-

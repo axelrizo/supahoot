@@ -4,8 +4,18 @@ import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import { inject, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
-const INITIAL_COUNTDOWN_VALUE_IN_S = 10
-const TIME_TO_UPDATE_COUNTER_IN_MS = 1000
+const UPDATE_COUNTER_INTERVAL_MS = 1000
+
+const { countdownTimeInS } = defineProps({
+  countdownTimeInS: {
+    type: Number,
+    required: false,
+    default: () => {
+      const INITIAL_COUNTDOWN_VALUE_IN_S = 10
+      return INITIAL_COUNTDOWN_VALUE_IN_S
+    },
+  },
+})
 
 const route = useRoute()
 
@@ -16,7 +26,7 @@ const lobbyId = parseInt(route.params.lobbyId as string)
 const container = inject<ServicesContainer>('container')!
 
 const question = ref<Question | null>(null)
-const countdown = ref(INITIAL_COUNTDOWN_VALUE_IN_S)
+const countdown = ref(countdownTimeInS)
 
 onMounted(async () => {
   question.value = await container.quizService.getQuestionByQuizIdAndQuestionOrder(
@@ -24,16 +34,16 @@ onMounted(async () => {
     questionOrder,
   )
 
-  const countdownInterval = setInterval(updateCountdown, TIME_TO_UPDATE_COUNTER_IN_MS)
+  const countdownInterval = setInterval(updateCountdown, UPDATE_COUNTER_INTERVAL_MS)
 
   function updateCountdown() {
-    if (countdown.value === 0) clearInterval(countdownInterval)
-    container.quizService.updateCountdown(lobbyId, countdown.value - 1)
-  }
+    if (countdown.value === 0) {
+      clearInterval(countdownInterval)
+      return
+    }
 
-  container.quizService.listenCountdown(lobbyId, (count: number) => {
-    countdown.value = count
-  })
+    container.quizService.updateCountdown(lobbyId, countdown.value--)
+  }
 })
 </script>
 

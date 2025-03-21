@@ -42,7 +42,7 @@ describe('AdminQuestionView when has time left', () => {
       },
     )
 
-    wrapper = mount(AdminQuestionView)
+    wrapper = mount(AdminQuestionView, { props: { countdownTimeInS: 10 } })
   })
 
   test('success: do not show options', () => {
@@ -60,13 +60,7 @@ describe('AdminQuestionView when has time left', () => {
 
 describe('AdminQuestionView when no has time left', () => {
   beforeEach(() => {
-    container.quizService.listenCountdown.mockImplementation(
-      (_lobbyId: number, callback: (count: number) => void) => {
-        callback(0)
-      },
-    )
-
-    wrapper = mount(AdminQuestionView)
+    wrapper = mount(AdminQuestionView, { props: { countdownTimeInS: 0 } })
   })
 
   test('success: show question image', async () => {

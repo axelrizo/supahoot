@@ -5,6 +5,7 @@ import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
 import type { Quiz } from '@supahoot/quizzes/quiz'
 import { type Database } from '../../../../../database.types'
+import type { Question } from '../../quizzes/question'
 
 export class SupabaseQuizService implements QuizService {
   private supabase = createClient<Database>(
@@ -117,6 +118,21 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data[0].quizzes as Quiz
+  }
+
+  async getQuestionByQuizIdAndQuestionOrder(
+    quizId: number,
+    questionOrder: number,
+  ): Promise<Question> {
+    const { error, data } = await this.supabase
+      .from('questions')
+      .select('*, answers(*)')
+      .eq('"order"', questionOrder)
+      .eq('quiz_id', quizId)
+
+    if (error) throw new Error(error.message)
+
+    return data[0] as Question
   }
 
   private generatePlayerWithAvatar(player: Player) {

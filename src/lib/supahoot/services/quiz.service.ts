@@ -1,6 +1,7 @@
-import type { Lobby } from '../quizzes/lobby'
-import type { Player } from '../quizzes/player'
-import type { Quiz } from '../quizzes/quiz'
+import type { Lobby } from '@supahoot/quizzes/lobby'
+import type { Player } from '@supahoot/quizzes/player'
+import type { Question } from '@supahoot/quizzes/question'
+import type { Quiz } from '@supahoot/quizzes/quiz'
 
 export interface QuizService {
   getQuizzes(): Promise<Quiz[]>
@@ -11,4 +12,5 @@ export interface QuizService {
   createPlayerByLobbyId(lobbyId: number, username: string, avatar: File): Promise<Player>
   startQuiz(lobbyId: number): Promise<void>
   getQuizByLobbyId(lobbyId: number): Promise<Quiz>
+  getQuestionByQuizIdAndQuestionOrder(quizId: number, questionOrder: number): Promise<Question>
 }

@@ -7,12 +7,25 @@ import type { Quiz } from '@supahoot/quizzes/quiz'
 import { type Database } from '../../../../../database.types'
 import type { Question } from '../../quizzes/question'
 
+type Handler<TypePayload> = (payload: TypePayload) => void
+
+interface EventListeners {
+  listen_for_new_players: Handler<Player>[]
+  start_quiz: Handler<void>[]
+}
+
 export class SupabaseQuizService implements QuizService {
   private supabase = createClient<Database>(
     import.meta.env.VITE_SUPABASE_URL,
     import.meta.env.VITE_SUPABASE_KEY,
   )
+
   private channels: Record<string, RealtimeChannel> = {}
+
+  private eventListeners: EventListeners = {
+    listen_for_new_players: [],
+    start_quiz: [],
+  }
 
   async getQuizzes() {
     const { error, data } = await this.supabase.from('quizzes').select('*')
@@ -41,40 +54,15 @@ export class SupabaseQuizService implements QuizService {
   }
 
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {
-    if (!this.channels[`lobby-${lobbyId}`]) {
-      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
-    }
+    this.startLobbyChannel(lobbyId)
 
-    this.channels[`lobby-${lobbyId}`]
-      .on<Player>(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'players',
-          filter: `lobby_id=eq.${lobbyId}`,
-        },
-        (payload) => {
-          handleNewPlayer({
-            ...payload.new,
-            image: this.getPlayerAvatarUrl(payload.new),
-          })
-        },
-      )
-      .subscribe()
+    this.eventListeners.listen_for_new_players.push(handleNewPlayer)
   }
 
   async stopListeningForNewPlayers(lobbyId: number) {
-    if (!this.channels[`lobby-${lobbyId}`]) return
+    this.startLobbyChannel(lobbyId)
 
-    try {
-      const result = await this.supabase.removeChannel(this.channels[`lobby-${lobbyId}`])
-      if (result !== 'ok') throw new Error('Failed to unsubscribe')
-
-      delete this.channels[`lobby-${lobbyId}`]
-    } catch (_error) {
-      throw new Error('Failed to unsubscribe')
-    }
+    this.eventListeners.listen_for_new_players = []
   }
 
   async createPlayerByLobbyId(lobbyId: number, username: string, file: File): Promise<Player> {
@@ -95,11 +83,9 @@ export class SupabaseQuizService implements QuizService {
   }
 
   async startQuiz(lobbyId: number) {
-    if (!this.channels[`lobby-${lobbyId}`]) {
-      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
-    }
+    const channel = this.startLobbyChannel(lobbyId)
 
-    const response = await this.channels[`lobby-${lobbyId}`].send({
+    const response = await channel.send({
       type: 'broadcast',
       event: 'start_quiz',
     })
@@ -133,6 +119,33 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data[0] as Question
+  }
+
+  private startLobbyChannel(lobbyId: number) {
+    if (!this.channels[`lobby-${lobbyId}`]) {
+      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
+    }
+
+    return this.channels[`lobby-${lobbyId}`]
+      .on<Player>(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'players',
+          filter: `lobby_id=eq.${lobbyId}`,
+        },
+        (payload) => {
+          const player = {
+            ...payload.new,
+            image: this.getPlayerAvatarUrl(payload.new),
+          }
+          this.eventListeners.listen_for_new_players.forEach((listener) => {
+            listener(player)
+          })
+        },
+      )
+      .subscribe()
   }
 
   private generatePlayerWithAvatar(player: Player) {

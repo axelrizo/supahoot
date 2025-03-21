@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('AdminQuestionView', () => {
   beforeEach(() => {
-    wrapper = mount(AdminQuestionView, { props: { timeUntilStartQuestion: 0 } })
+    wrapper = mount(AdminQuestionView)
   })
 
   test('success: call service to get question details', () => {

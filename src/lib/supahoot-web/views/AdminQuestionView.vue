@@ -5,6 +5,7 @@ import { inject, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const INITIAL_COUNTDOWN_VALUE_IN_S = 10
+const TIME_TO_UPDATE_COUNTER_IN_MS = 1000
 
 const route = useRoute()
 
@@ -22,6 +23,13 @@ onMounted(async () => {
     quizId,
     questionOrder,
   )
+
+  const countdownInterval = setInterval(updateCountdown, TIME_TO_UPDATE_COUNTER_IN_MS)
+
+  function updateCountdown() {
+    if (countdown.value === 0) clearInterval(countdownInterval)
+    container.quizService.updateCountdown(lobbyId, countdown.value - 1)
+  }
 
   container.quizService.listenCountdown(lobbyId, (count: number) => {
     countdown.value = count

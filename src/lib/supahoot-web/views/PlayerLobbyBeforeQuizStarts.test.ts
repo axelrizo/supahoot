@@ -18,7 +18,7 @@ describe('PlayerLobbyBeforeQuizStarts', () => {
     router.setParams({ lobbyId: '1', quizId: '1' })
     router.addRoute({
       name: 'player-quizz',
-      path: '/quiz/:quizId/lobby/:lobbyId/question/:questionOrder',
+      path: '/quiz/:quizId/lobby/:lobbyId/quiz-started',
       component: MockComponent,
     })
 
@@ -44,7 +44,7 @@ describe('PlayerLobbyBeforeQuizStarts', () => {
   test("success: redirect to player's lobby when quiz starts", async () => {
     expect(router.push).toHaveBeenLastCalledWith({
       name: 'player-quiz',
-      params: { quizId: 1, lobbyId: 1, questionOrder: 1 },
+      params: { quizId: 1, lobbyId: 1 },
     })
   })
 })

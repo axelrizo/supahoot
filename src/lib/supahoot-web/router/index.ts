@@ -24,7 +24,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'player-lobby', component: PlayersLobby },
         {
-          path: '/before-start',
+          path: 'before-start',
           name: 'player-lobby-before-quiz-starts',
           component: PlayerLobbyBeforeQuizStarts,
         },

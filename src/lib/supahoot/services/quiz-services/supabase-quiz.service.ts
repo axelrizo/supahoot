@@ -12,7 +12,7 @@ type Handler<TypePayload> = (payload: TypePayload) => void
 interface EventListeners {
   listen_for_new_players: Handler<Player>[]
   start_quiz: Handler<void>[]
-  listen_question_countdown: Handler<number>[]
+  update_countdown: Handler<number>[]
 }
 
 export class SupabaseQuizService implements QuizService {
@@ -26,7 +26,7 @@ export class SupabaseQuizService implements QuizService {
   private eventListeners: EventListeners = {
     listen_for_new_players: [],
     start_quiz: [],
-    listen_question_countdown: [],
+    update_countdown: [],
   }
 
   async getQuizzes() {
@@ -56,13 +56,13 @@ export class SupabaseQuizService implements QuizService {
   }
 
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {
-    this.startLobbyChannel(lobbyId)
+    this.initializeLobbyChannel(lobbyId)
 
     this.eventListeners.listen_for_new_players.push(handleNewPlayer)
   }
 
   async stopListeningForNewPlayers(lobbyId: number) {
-    this.startLobbyChannel(lobbyId)
+    this.initializeLobbyChannel(lobbyId)
 
     this.eventListeners.listen_for_new_players = []
   }
@@ -85,7 +85,7 @@ export class SupabaseQuizService implements QuizService {
   }
 
   async startQuiz(lobbyId: number) {
-    const channel = this.startLobbyChannel(lobbyId)
+    const channel = this.initializeLobbyChannel(lobbyId)
 
     const response = await channel.send({
       type: 'broadcast',
@@ -124,13 +124,13 @@ export class SupabaseQuizService implements QuizService {
   }
 
   listenCountdown(lobbyId: number, callback: (count: number) => void): void {
-    this.startLobbyChannel(lobbyId)
+    this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.listen_question_countdown.push(callback)
+    this.eventListeners.update_countdown.push(callback)
   }
 
   updateCountdown(lobbyId: number, count: number): void {
-    const channel = this.startLobbyChannel(lobbyId)
+    const channel = this.initializeLobbyChannel(lobbyId)
 
     channel.send({
       type: 'broadcast',
@@ -140,17 +140,18 @@ export class SupabaseQuizService implements QuizService {
   }
 
   listenQuizStart(lobbyId: number, callback: () => void): void {
-    this.startLobbyChannel(lobbyId)
+    this.initializeLobbyChannel(lobbyId)
 
     this.eventListeners.start_quiz.push(callback)
   }
 
-  private startLobbyChannel(lobbyId: number) {
-    if (!this.channels[`lobby-${lobbyId}`]) {
-      this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
+  private initializeLobbyChannel(lobbyId: number) {
+    if (this.channels[`lobby-${lobbyId}`]) {
+      return this.channels[`lobby-${lobbyId}`]
     }
 
-    return this.channels[`lobby-${lobbyId}`]
+    const channel = this.supabase
+      .channel(`lobby-${lobbyId}`)
       .on<Player>(
         'postgres_changes',
         {
@@ -169,7 +170,20 @@ export class SupabaseQuizService implements QuizService {
           })
         },
       )
+      .on('broadcast', { event: 'start_quiz' }, (_payload) => {
+        this.eventListeners.start_quiz.forEach((listener: () => void) => {
+          listener()
+        })
+      })
+      .on<{ count: number }>('broadcast', { event: 'update_countdown' }, (payload) => {
+        this.eventListeners.update_countdown.forEach((listener) => {
+          listener(payload.payload.count)
+        })
+      })
       .subscribe()
+
+    this.channels[`lobby-${lobbyId}`] = channel
+    return channel
   }
 
   private generatePlayerWithAvatar(player: Player) {

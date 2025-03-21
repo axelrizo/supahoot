@@ -81,7 +81,7 @@ export class SupabaseQuizService implements QuizService {
 
     if (error) throw new Error(error.message)
 
-    return data[0] as Player
+    return this.generatePlayerWithAvatar(data[0]) as Player
   }
 
   async startQuiz(lobbyId: number) {

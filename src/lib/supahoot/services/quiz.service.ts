@@ -15,4 +15,5 @@ export interface QuizService {
   getQuestionByQuizIdAndQuestionOrder(quizId: number, questionOrder: number): Promise<Question>
   listenCountdown(lobbyId: number, callback: (count: number) => void): void
   updateCountdown(lobbyId: number, count: number): void
+  listenQuizStart(lobbyId: number, callback: () => void): void
 }

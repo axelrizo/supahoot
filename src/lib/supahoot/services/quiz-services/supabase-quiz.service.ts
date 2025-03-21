@@ -139,6 +139,12 @@ export class SupabaseQuizService implements QuizService {
     })
   }
 
+  listenQuizStart(lobbyId: number, callback: () => void): void {
+    this.startLobbyChannel(lobbyId)
+
+    this.eventListeners.start_quiz.push(callback)
+  }
+
   private startLobbyChannel(lobbyId: number) {
     if (!this.channels[`lobby-${lobbyId}`]) {
       this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)

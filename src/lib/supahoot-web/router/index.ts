@@ -4,8 +4,8 @@ import AdminView from '@supahoot-web/views/AdminView.vue'
 import PlayerProviders from '@supahoot-web/views/PlayerProviders.vue'
 import PlayersLobby from '@supahoot-web/views/PlayersLobby.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import PlayerLobbyBeforeQuizStarts from '../views/PlayerLobbyBeforeQuizStarts.vue'
+import HomeView from '@supahoot-web/views/HomeView.vue'
+import PlayerLobbyBeforeQuizStarts from '@supahoot-web/views/PlayerLobbyBeforeQuizStarts.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),

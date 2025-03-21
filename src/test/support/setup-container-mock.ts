@@ -10,6 +10,7 @@ MockQuizService.prototype.startListeningForNewPlayers = vi.fn()
 MockQuizService.prototype.stopListeningForNewPlayers = vi.fn()
 MockQuizService.prototype.createPlayerByLobbyId = vi.fn()
 MockQuizService.prototype.startQuiz = vi.fn()
+MockQuizService.prototype.getQuizByLobbyId = vi.fn()
 
 const MockAvatarService = vi.fn()
 MockAvatarService.prototype.generateAvatarByString = vi.fn()

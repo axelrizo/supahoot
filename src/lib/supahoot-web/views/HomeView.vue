@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { ServicesContainer } from '@/lib/supahoot/services/container'
+import { inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+
 const router = useRouter()
+const container = inject<ServicesContainer>('container')
 
 const lobbyId = ref('')
 
 const handleSubmitForm = async () => {
-  await router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value } })
+  const quiz = await container.quizService.getQuizByLobbyId(lobbyId.value)
+  await router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value, quizId: quiz.id } })
 }
 </script>
 

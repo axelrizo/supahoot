@@ -47,7 +47,11 @@ onMounted(async () => {
       <div data-testid="time-left">{{ countdown }}</div>
     </div>
     <div v-if="countdown === 0 && question">
-      <div data-testid="question-options"></div>
+      <div data-testid="question-answers">
+        <div v-for="answer in question.answers" :key="answer.id">
+          <div data-testid="answer-title">{{ answer.title }}</div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

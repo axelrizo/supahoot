@@ -16,6 +16,7 @@ beforeEach(() => {
     title: 'Question 1',
     order: 3,
     image: 'image.png',
+    answers: [{ id: 1, title: 'Answer 1', correct: false }],
   })
 })
 
@@ -45,7 +46,7 @@ describe('AdminQuestionView when has time left', () => {
   })
 
   test('success: do not show options', () => {
-    expect(wrapper.find(HTMLUtils.testId('question-options')).exists()).toBe(false)
+    expect(wrapper.find(HTMLUtils.testId('question-answers')).exists()).toBe(false)
   })
 
   test('success: show time left', () => {
@@ -77,7 +78,7 @@ describe.only('AdminQuestionView when no has time left', () => {
     expect(wrapper.find(HTMLUtils.testId('time-left')).exists()).toBe(false)
   })
 
-  test('success: show options', async () => {
-    expect(wrapper.find(HTMLUtils.testId('question-options')).exists()).toBe(true)
+  test('success: show answers', async () => {
+    expect(wrapper.find(HTMLUtils.testId('answer-title')).text()).toBe('Answer 1')
   })
 })

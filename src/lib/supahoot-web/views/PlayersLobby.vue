@@ -3,14 +3,18 @@ import type { NotificationProvider } from '@supahoot-web/providers/notification-
 import type { ServicesContainer } from '@supahoot/services/container'
 import { FileUtils } from '@supahoot/utils/file.utils'
 import { inject, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import type { PlayerProvider } from '../providers/player-provider'
 
 const container = inject<ServicesContainer>('container')!
 const notificationProvider = inject<NotificationProvider>('notificationProvider')!
+const playerProvider = inject<PlayerProvider>('playerProvider')!
 
 const route = useRoute()
+const router = useRouter()
 
 const lobbyId = parseInt(route.params.lobbyId as string)
+const quizId = parseInt(route.params.quizId as string)
 
 const playerUsername = ref('')
 const playerAvatar = ref<File | null>(null)
@@ -24,11 +28,15 @@ const submitPlayer = async () => {
   }
 
   try {
-    await container.quizService.createPlayerByLobbyId(
+    playerProvider.player = await container.quizService.createPlayerByLobbyId(
       lobbyId,
       playerUsername.value,
       playerAvatar.value!,
     )
+    await router.push({
+      name: 'player-lobby-before-quiz-starts',
+      params: { lobbyId: lobbyId, quizId: quizId },
+    })
   } catch (_error) {
     notificationProvider.showNotification('Error: Failed to create player')
   }

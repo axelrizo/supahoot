@@ -101,6 +101,17 @@ export class SupabaseQuizService implements QuizService {
     await this.channels[`lobby-${lobbyId}`].send({ type: 'broadcast', event: 'start_quiz' })
   }
 
+  async getQuizByLobbyId(lobbyId: number): Promise<Quiz> {
+    const { error, data } = await this.supabase
+      .from('lobbies')
+      .select('quizzes(*)')
+      .eq('id', lobbyId)
+
+    if (error) throw new Error(error.message)
+
+    return data[0].quizzes as Quiz
+  }
+
   private generatePlayerWithAvatar(player: Player) {
     return {
       ...player,

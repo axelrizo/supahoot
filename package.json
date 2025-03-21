@@ -16,7 +16,8 @@
     "supabase:generate-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > ./database.types.ts",
     "ci:lint": "eslint .",
     "ci:format": "prettier --check src/",
-    "ci:type-check": "vue-tsc --build"
+    "ci:type-check": "vue-tsc --build",
+    "ci:test": "vitest --watch=false"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.2",

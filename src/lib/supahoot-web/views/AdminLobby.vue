@@ -68,6 +68,7 @@ onUnmounted(async () => {
       data-testid="initialize-quiz-button"
       @click="handleClickLink"
       :to="{ name: 'admin-quiz', params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 } }"
-    ></RouterLink>
+      >Initialize Quiz
+    </RouterLink>
   </div>
 </template>

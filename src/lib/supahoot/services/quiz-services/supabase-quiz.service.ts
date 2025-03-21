@@ -98,7 +98,14 @@ export class SupabaseQuizService implements QuizService {
       this.channels[`lobby-${lobbyId}`] = this.supabase.channel(`lobby-${lobbyId}`)
     }
 
-    await this.channels[`lobby-${lobbyId}`].send({ type: 'broadcast', event: 'start_quiz' })
+    const response = await this.channels[`lobby-${lobbyId}`].send({
+      type: 'broadcast',
+      event: 'start_quiz',
+    })
+
+    if (response !== 'ok') {
+      throw new Error('Failed to start quiz')
+    }
   }
 
   async getQuizByLobbyId(lobbyId: number): Promise<Quiz> {

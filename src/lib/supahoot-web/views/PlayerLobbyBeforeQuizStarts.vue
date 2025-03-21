@@ -16,8 +16,8 @@ if (!player) {
 </script>
 
 <template>
-  <div>
-    <img :src="player!.image" data-testid="player-avatar" />
-    <span data-testid="player-username">{{ player!.username }}</span>
+  <div v-if="player">
+    <img :src="player.image" data-testid="player-avatar" />
+    <span data-testid="player-username">{{ player.username }}</span>
   </div>
 </template>

@@ -54,12 +54,11 @@ describe('AdminQuestionView when has time left', () => {
   })
 
   test('success: do not show question image', () => {
-    console.log(wrapper.html())
     expect(wrapper.find(HTMLUtils.testId('question-image')).exists()).toBe(false)
   })
 })
 
-describe.only('AdminQuestionView when no has time left', () => {
+describe('AdminQuestionView when no has time left', () => {
   beforeEach(() => {
     container.quizService.listenCountdown.mockImplementation(
       (_lobbyId: number, callback: (count: number) => void) => {

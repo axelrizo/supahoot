@@ -4,17 +4,18 @@ import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import { inject, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
+const INITIAL_COUNTDOWN_VALUE_IN_S = 10
+
 const route = useRoute()
-const { timeUntilStartQuestion } = defineProps<{ timeUntilStartQuestion: number }>()
 
 const quizId = parseInt(route.params.quizId as string)
 const questionOrder = parseInt(route.params.questionOrder as string)
-// const lobbyId = parseInt(route.params.lobbyId as string)
+const lobbyId = parseInt(route.params.lobbyId as string)
 
 const container = inject<ServicesContainer>('container')!
 
 const question = ref<Question | null>(null)
-const hasRemainingWarmUpTime = ref(false)
+const countdown = ref(INITIAL_COUNTDOWN_VALUE_IN_S)
 
 onMounted(async () => {
   question.value = await container.quizService.getQuestionByQuizIdAndQuestionOrder(
@@ -22,8 +23,8 @@ onMounted(async () => {
     questionOrder,
   )
 
-  hasRemainingWarmUpTime.value = await new Promise((resolve) => {
-    setTimeout(() => resolve(true), timeUntilStartQuestion)
+  container.quizService.listenCountdown(lobbyId, (count: number) => {
+    countdown.value = count
   })
 })
 </script>
@@ -32,12 +33,12 @@ onMounted(async () => {
   <div>
     <div v-if="question">
       <div data-testid="question-title">Question 1</div>
-      <img data-testid="question-image" :src="question.image" />
+      <img v-if="countdown === 0" data-testid="question-image" :src="question.image" />
     </div>
-    <div v-if="!hasRemainingWarmUpTime">
-      <div data-testid="time-left">1</div>
+    <div v-if="countdown > 0">
+      <div data-testid="time-left">{{ countdown }}</div>
     </div>
-    <div v-if="hasRemainingWarmUpTime">
+    <div v-if="countdown === 0 && question">
       <div data-testid="question-options"></div>
     </div>
   </div>

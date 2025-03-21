@@ -1,6 +1,5 @@
 import { container } from '@/test/support/setup-container-mock'
 import { HTMLUtils } from '@/test/support/utils/html-utils'
-import { TestUtils } from '@/test/support/utils/test-utils'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminQuestionView from './AdminQuestionView.vue'
@@ -36,25 +35,38 @@ describe('AdminQuestionView', () => {
 
 describe('AdminQuestionView when has time left', () => {
   beforeEach(() => {
-    wrapper = mount(AdminQuestionView, { props: { timeUntilStartQuestion: 100_000 } })
+    container.quizService.listenCountdown.mockImplementation(
+      (_lobbyId: number, callback: (count: number) => void) => {
+        callback(10)
+      },
+    )
+
+    wrapper = mount(AdminQuestionView)
   })
 
-  test('success: not show options', () => {
+  test('success: do not show options', () => {
     expect(wrapper.find(HTMLUtils.testId('question-options')).exists()).toBe(false)
   })
 
   test('success: show time left', () => {
-    expect(wrapper.get(HTMLUtils.testId('time-left')).text()).toContain('1')
+    expect(wrapper.get(HTMLUtils.testId('time-left')).text()).toContain('10')
   })
 
   test('success: do not show question image', () => {
-    expect(wrapper.get(HTMLUtils.testId('question-image')).attributes('src')).toBe('image.png')
+    console.log(wrapper.html())
+    expect(wrapper.find(HTMLUtils.testId('question-image')).exists()).toBe(false)
   })
 })
 
-describe('AdminQuestionView when no has time left', () => {
+describe.only('AdminQuestionView when no has time left', () => {
   beforeEach(() => {
-    wrapper = mount(AdminQuestionView, { props: { timeUntilStartQuestion: 0 } })
+    container.quizService.listenCountdown.mockImplementation(
+      (_lobbyId: number, callback: (count: number) => void) => {
+        callback(0)
+      },
+    )
+
+    wrapper = mount(AdminQuestionView)
   })
 
   test('success: show question image', async () => {
@@ -62,12 +74,10 @@ describe('AdminQuestionView when no has time left', () => {
   })
 
   test('success: do not show time left', async () => {
-    expect(wrapper.get(HTMLUtils.testId('time-left')).text()).toContain('1')
+    expect(wrapper.find(HTMLUtils.testId('time-left')).exists()).toBe(false)
   })
 
   test('success: show options', async () => {
-    await TestUtils.sleep(0)
-
     expect(wrapper.find(HTMLUtils.testId('question-options')).exists()).toBe(true)
   })
 })

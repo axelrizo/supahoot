@@ -3,24 +3,56 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      answers: {
+        Row: {
+          created_at: string
+          id: number
+          is_correct: boolean
+          order: number
+          question_id: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_correct: boolean
+          order: number
+          question_id: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_correct?: boolean
+          order?: number
+          question_id?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'answers_question_id_fkey'
+            columns: ['question_id']
+            isOneToOne: false
+            referencedRelation: 'questions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       lobbies: {
         Row: {
           created_at: string | null
           id: number
           quiz_id: number
-          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: number
           quiz_id: number
-          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: number
           quiz_id?: number
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -60,6 +92,41 @@ export type Database = {
             columns: ['lobby_id']
             isOneToOne: false
             referencedRelation: 'lobbies'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          created_at: string
+          id: number
+          image: string
+          order: number
+          quiz_id: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          image: string
+          order: number
+          quiz_id: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          image?: string
+          order?: number
+          quiz_id?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'question_quiz_id_fkey'
+            columns: ['quiz_id']
+            isOneToOne: false
+            referencedRelation: 'quizzes'
             referencedColumns: ['id']
           },
         ]

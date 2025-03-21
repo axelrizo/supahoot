@@ -1,11 +1,11 @@
-import MockComponent from '@/test/support/MockComponent.vue'
 import AdminLobby from '@supahoot-web/views/AdminLobby.vue'
 import AdminView from '@supahoot-web/views/AdminView.vue'
+import HomeView from '@supahoot-web/views/HomeView.vue'
+import PlayerLobbyBeforeQuizStarts from '@supahoot-web/views/PlayerLobbyBeforeQuizStarts.vue'
 import PlayerProviders from '@supahoot-web/views/PlayerProviders.vue'
 import PlayersLobby from '@supahoot-web/views/PlayersLobby.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import PlayerLobbyBeforeQuizStarts from '../views/PlayerLobbyBeforeQuizStarts.vue'
+import AdminQuestionView from '../views/AdminQuestionView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
@@ -15,7 +15,7 @@ const router = createRouter({
     {
       path: '/admin/quiz/:quizId/lobby/:lobbyId/question/:questionOrder',
       name: 'admin-quiz',
-      component: MockComponent,
+      component: AdminQuestionView,
     },
     { path: '/', name: 'home', component: HomeView },
     {
@@ -24,7 +24,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'player-lobby', component: PlayersLobby },
         {
-          path: '/before-start',
+          path: 'before-start',
           name: 'player-lobby-before-quiz-starts',
           component: PlayerLobbyBeforeQuizStarts,
         },

@@ -21,8 +21,19 @@ const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
 const players = ref<Player[]>([])
 
-const handleClickLink = () => {
-  container.quizService.startQuiz(lobbyId)
+const handleClickLink = async () => {
+  try {
+    await container.quizService.startQuiz(lobbyId)
+
+    await router.push({
+      name: 'admin-quiz',
+      params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 },
+    })
+  } catch (error) {
+    if (error instanceof Error) {
+      notificationProvider.showNotification('Error: ' + error.message)
+    }
+  }
 }
 
 onMounted(async () => {
@@ -37,7 +48,7 @@ onUnmounted(async () => {
     await container.quizService.stopListeningForNewPlayers(lobbyId)
   } catch (error) {
     if (error instanceof Error) {
-      notificationProvider.showNotification(error.message)
+      notificationProvider.showNotification('Error: ' + error.message)
     }
   }
 })
@@ -57,6 +68,7 @@ onUnmounted(async () => {
       data-testid="initialize-quiz-button"
       @click="handleClickLink"
       :to="{ name: 'admin-quiz', params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 } }"
-    ></RouterLink>
+      >Initialize Quiz
+    </RouterLink>
   </div>
 </template>

@@ -97,6 +97,25 @@ describe('AdminLobby', () => {
     expect(container.quizService.startQuiz).toHaveBeenCalledWith(1)
   })
 
+  test('success: redirect to the first question when a quiz is initialized', async () => {
+    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
+
+    expect(router.currentRoute.value).toMatchObject({
+      name: 'admin-quiz',
+      params: { quizId: '1', lobbyId: '1', questionOrder: '1' },
+    })
+  })
+
+  test('error: show notification when start quiz fails', async () => {
+    container.quizService.startQuiz.mockRejectedValue(new Error('Failed to start quiz'))
+
+    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
+
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+      'Error: Failed to start quiz',
+    )
+  })
+
   test('error: send error when stop listening for new players fails', async () => {
     container.quizService.stopListeningForNewPlayers.mockRejectedValue(
       new Error('Failed to unsubscribe'),
@@ -105,6 +124,8 @@ describe('AdminLobby', () => {
     wrapper.unmount()
     await flushPromises()
 
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith('Failed to unsubscribe')
+    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+      'Error: Failed to unsubscribe',
+    )
   })
 })

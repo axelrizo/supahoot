@@ -12,6 +12,7 @@ type Handler<TypePayload> = (payload: TypePayload) => void
 interface EventListeners {
   listen_for_new_players: Handler<Player>[]
   start_quiz: Handler<void>[]
+  listen_question_countdown: Handler<number>[]
 }
 
 export class SupabaseQuizService implements QuizService {
@@ -25,6 +26,7 @@ export class SupabaseQuizService implements QuizService {
   private eventListeners: EventListeners = {
     listen_for_new_players: [],
     start_quiz: [],
+    listen_question_countdown: [],
   }
 
   async getQuizzes() {
@@ -119,6 +121,22 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data[0] as Question
+  }
+
+  listenCountdown(lobbyId: number, callback: (count: number) => void): void {
+    this.startLobbyChannel(lobbyId)
+
+    this.eventListeners.listen_question_countdown.push(callback)
+  }
+
+  updateCountdown(lobbyId: number, count: number): void {
+    const channel = this.startLobbyChannel(lobbyId)
+
+    channel.send({
+      type: 'broadcast',
+      event: 'update_countdown',
+      payload: { count },
+    })
   }
 
   private startLobbyChannel(lobbyId: number) {

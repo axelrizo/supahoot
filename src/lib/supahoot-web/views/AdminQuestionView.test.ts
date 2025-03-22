@@ -189,12 +189,12 @@ describe('AdminQuestionView when has started', () => {
   })
 
   test('success: answers print title', () => {
-    const answers = wrapper.findAll(
+    const answersTitles = wrapper.findAll(
       `${STARTED_QUESTION} > ${HTMLUtils.testId('answer')} > ${HTMLUtils.testId('answer-title')}`,
     )
 
-    answers.forEach((answer, index) => {
-      expect(answer.text()).toContain(question.answers[index].title)
+    answersTitles.forEach((answerTitle, index) => {
+      expect(answerTitle.text()).toContain(question.answers[index].title)
     })
   })
 

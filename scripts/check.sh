@@ -1,6 +1,6 @@
 cd ../src
 
-npm run ci:lint
-npm run ci:format
-npm run ci:type-check
+npm run lint
+npm run format
+npm run type-check
 npm run ci:test

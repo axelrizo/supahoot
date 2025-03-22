@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import type { Quiz } from '@supahoot/quizzes/quiz'
 import type { ServicesContainer } from '@supahoot/services/container'
 import { inject, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 
 const { quizService } = inject('container') as ServicesContainer
 const { showNotification } = inject('notificationProvider') as NotificationProvider
@@ -19,7 +19,10 @@ onMounted(async () => {
 const createLobby = async (quizId: number) => {
   try {
     const lobby = await quizService.createLobby(quizId)
-    router.push(`admin/lobby/${lobby.id}`)
+    router.push({
+      name: 'admin-lobby',
+      params: { lobbyId: lobby.id, quizId: quizId },
+    })
   } catch (_error) {
     showNotification('Error: Failed to create lobby')
   }

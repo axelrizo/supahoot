@@ -3,15 +3,19 @@ import type { Quiz } from '@/lib/supahoot/quizzes/quiz'
 import { container, notificationProvider } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import { mount, type VueWrapper } from '@vue/test-utils'
+import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminView from './AdminView.vue'
 
 let wrapper: VueWrapper
+let router: RouterMock
 
 const quiz: Quiz = { id: 1, name: 'Quiz 1' }
 const lobby: Lobby = { id: 1 }
 
 describe('AdminView when quizzes provided and lobby created', () => {
   beforeEach(() => {
+    router = getRouter()
+
     container.quizService.createLobby.mockResolvedValue(lobby)
     container.quizService.getQuizzes.mockResolvedValue([quiz])
 
@@ -31,7 +35,10 @@ describe('AdminView when quizzes provided and lobby created', () => {
   test('success: redirect to admin lobby with room id when click on initialize quiz', async () => {
     await wrapper.find(testId('initialize-quiz-button')).trigger('click')
 
-    expect(wrapper.vm.$route.path).toBe(`/admin/lobby/${quiz.id}`)
+    expect(router.push).toHaveBeenCalledWith({
+      name: 'admin-lobby',
+      params: { quizId: quiz.id, lobbyId: lobby.id },
+    })
   })
 })
 

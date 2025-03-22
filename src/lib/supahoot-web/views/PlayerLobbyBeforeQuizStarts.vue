@@ -25,7 +25,7 @@ onMounted(() => {
   container.quizService.listenQuizStart(lobbyId, () => {
     router.push({
       name: 'player-quiz',
-      params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 },
+      params: { quizId: quizId, lobbyId: lobbyId },
     })
   })
 })

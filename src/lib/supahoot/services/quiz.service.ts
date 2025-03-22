@@ -46,9 +46,9 @@ export interface QuizService {
    */
   listenCountdown(lobbyId: number, callback: (count: number) => void): void
   /**
-   * Update the countdown
+   * Update the countdown before the question start
    */
-  updateCountdown(lobbyId: number, count: number): void
+  updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void
   /**
    * Listen to the quiz start
    */

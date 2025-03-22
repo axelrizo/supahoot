@@ -13,7 +13,7 @@ type Handler<TypePayload> = (payload: TypePayload) => void
 interface EventListeners {
   listenForNewPlayers: Handler<Player>[]
   startQuiz: Handler<void>[]
-  updateCountdown: Handler<number>[]
+  updateCountdownBeforeQuestionStart: Handler<number>[]
   listenQuestion: Handler<Question>[]
   listenPlayerQuestionPoints: { playerId: number; callback: Handler<PlayerAnswer> }[]
 }
@@ -29,7 +29,7 @@ export class SupabaseQuizService implements QuizService {
   private eventListeners: EventListeners = {
     listenForNewPlayers: [],
     startQuiz: [],
-    updateCountdown: [],
+    updateCountdownBeforeQuestionStart: [],
     listenQuestion: [],
     listenPlayerQuestionPoints: [],
   }
@@ -131,15 +131,15 @@ export class SupabaseQuizService implements QuizService {
   listenCountdown(lobbyId: number, callback: (count: number) => void): void {
     this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.updateCountdown.push(callback)
+    this.eventListeners.updateCountdownBeforeQuestionStart.push(callback)
   }
 
-  updateCountdown(lobbyId: number, count: number): void {
+  updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void {
     const channel = this.initializeLobbyChannel(lobbyId)
 
     channel.send({
       type: 'broadcast',
-      event: 'update_countdown',
+      event: 'update_countdown_before_question_start',
       payload: { count },
     })
   }
@@ -220,11 +220,15 @@ export class SupabaseQuizService implements QuizService {
           listener()
         })
       })
-      .on<{ count: number }>('broadcast', { event: 'update_countdown' }, (payload) => {
-        this.eventListeners.updateCountdown.forEach((listener) => {
-          listener(payload.payload.count)
-        })
-      })
+      .on<{ count: number }>(
+        'broadcast',
+        { event: 'update_countdown_before_question_start' },
+        (payload) => {
+          this.eventListeners.updateCountdownBeforeQuestionStart.forEach((listener) => {
+            listener(payload.payload.count)
+          })
+        },
+      )
       .subscribe()
 
     this.channels[`lobby-${lobbyId}`] = channel

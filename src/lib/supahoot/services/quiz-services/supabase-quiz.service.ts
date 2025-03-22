@@ -128,18 +128,22 @@ export class SupabaseQuizService implements QuizService {
     return data[0] as Question
   }
 
-  listenCountdown(lobbyId: number, callback: (count: number) => void): void {
-    this.initializeLobbyChannel(lobbyId)
-
-    this.eventListeners.updateCountdownBeforeQuestionStart.push(callback)
-  }
-
   updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void {
     const channel = this.initializeLobbyChannel(lobbyId)
 
     channel.send({
       type: 'broadcast',
       event: 'update_countdown_before_question_start',
+      payload: { count },
+    })
+  }
+
+  updateStartAnswerQuestionCountdown(lobbyId: number, count: number): void {
+    const channel = this.initializeLobbyChannel(lobbyId)
+
+    channel.send({
+      type: 'broadcast',
+      event: 'update_start_answer_question_countdown',
       payload: { count },
     })
   }

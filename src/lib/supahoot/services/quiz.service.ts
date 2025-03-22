@@ -42,13 +42,13 @@ export interface QuizService {
    */
   getQuestionByQuizIdAndQuestionOrder(quizId: number, questionOrder: number): Promise<Question>
   /**
-   * Listen to the countdown
-   */
-  listenCountdown(lobbyId: number, callback: (count: number) => void): void
-  /**
    * Update the countdown before the question start
    */
   updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void
+  /**
+   * Update the countdown to start answering the question
+   */
+  updateStartAnswerQuestionCountdown(lobbyId: number, count: number): void
   /**
    * Listen to the quiz start
    */

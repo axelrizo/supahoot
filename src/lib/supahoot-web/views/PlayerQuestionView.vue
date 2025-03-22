@@ -30,9 +30,15 @@ const handleAnswerClick = async (answer: Answer) => {
   playerAnswer.value = answer
 }
 
+const restartState = () => {
+  playerAnswer.value = null
+  question.value = null
+  points.value = 0
+}
+
 onMounted(() => {
   container.quizService.listenCountdown(lobbyId, (timeLeft) => {
-    playerAnswer.value = null
+    restartState()
     countdown.value = timeLeft
   })
 

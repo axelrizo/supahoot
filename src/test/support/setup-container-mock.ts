@@ -17,6 +17,7 @@ MockQuizService.prototype.updateCountdown = vi.fn()
 MockQuizService.prototype.listenQuizStart = vi.fn()
 MockQuizService.prototype.listenQuestion = vi.fn()
 MockQuizService.prototype.sendAnswer = vi.fn()
+MockQuizService.prototype.listenPlayerQuestionPoints = vi.fn()
 
 const MockAvatarService = vi.fn()
 MockAvatarService.prototype.generateAvatarByString = vi.fn()

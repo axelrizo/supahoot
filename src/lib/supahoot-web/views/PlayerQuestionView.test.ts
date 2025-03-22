@@ -1,5 +1,6 @@
-import { container } from '@/test/support/setup-container-mock'
+import { container, playerProvider } from '@/test/support/setup-container-mock'
 import { HTMLUtils } from '@/test/support/utils/html-utils'
+import { type PlayerAnswer } from '@supahoot/quizzes/player-answer'
 import type { Question } from '@supahoot/quizzes/question'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
@@ -21,15 +22,25 @@ describe('PlayerQuestionView', () => {
       },
     )
 
+    playerProvider.player = { id: 1, username: 'Player 1', image: '/image' }
+
     wrapper = mount(PlayerQuestionView)
   })
 
-  test('success: display de countdown', () => {
+  test('success: display the countdown', () => {
     expect(wrapper.get(HTMLUtils.testId('time-left')).text()).toContain('15')
   })
 
   test('success: not display the button to answer the question', () => {
     expect(wrapper.findAll(HTMLUtils.testId('answer-button'))).toHaveLength(0)
+  })
+
+  test('success: display username', () => {
+    expect(wrapper.get(HTMLUtils.testId('username')).text()).toContain('Player 1')
+  })
+
+  test('success: display image', () => {
+    expect(wrapper.get(HTMLUtils.testId('image')).attributes('src')).toContain('/image')
   })
 })
 
@@ -58,7 +69,13 @@ describe('PlayerQuestion when no time left', () => {
       },
     )
 
-    container.quizService.sendAnswer.mockResolvedValue({ points: 100 })
+    container.quizService.listenPlayerQuestionPoints.mockImplementation(
+      (_lobbyId: number, _playerId: number, callback: (payload: PlayerAnswer) => void) => {
+        callback({ playerId: 1, answerId: 1, points: 100, id: 1 })
+      },
+    )
+
+    playerProvider.player = { id: 1, username: 'Player 1', image: '/image' }
 
     wrapper = mount(PlayerQuestionView)
   })
@@ -73,10 +90,11 @@ describe('PlayerQuestion when no time left', () => {
 
   test('success: send the answer when click on the button', async () => {
     const lobbyId = 2
+    const playerId = 1
 
     await wrapper.findAll(HTMLUtils.testId('answer-button'))[0].trigger('click')
 
-    expect(container.quizService.sendAnswer).toHaveBeenCalledWith(lobbyId, 1)
+    expect(container.quizService.sendAnswer).toHaveBeenCalledWith(lobbyId, playerId, 1)
   })
 
   test('success: does not show answers when answered', async () => {

@@ -5,14 +5,17 @@ import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
 import type { Quiz } from '@supahoot/quizzes/quiz'
 import { type Database } from '../../../../../database.types'
+import type { PlayerAnswer } from '../../quizzes/player-answer'
 import type { Question } from '../../quizzes/question'
 
 type Handler<TypePayload> = (payload: TypePayload) => void
 
 interface EventListeners {
-  listen_for_new_players: Handler<Player>[]
-  start_quiz: Handler<void>[]
-  update_countdown: Handler<number>[]
+  listenForNewPlayers: Handler<Player>[]
+  startQuiz: Handler<void>[]
+  updateCountdown: Handler<number>[]
+  listenQuestion: Handler<Question>[]
+  listenPlayerQuestionPoints: { playerId: number; callback: Handler<PlayerAnswer> }[]
 }
 
 export class SupabaseQuizService implements QuizService {
@@ -24,9 +27,11 @@ export class SupabaseQuizService implements QuizService {
   private channels: Record<string, RealtimeChannel> = {}
 
   private eventListeners: EventListeners = {
-    listen_for_new_players: [],
-    start_quiz: [],
-    update_countdown: [],
+    listenForNewPlayers: [],
+    startQuiz: [],
+    updateCountdown: [],
+    listenQuestion: [],
+    listenPlayerQuestionPoints: [],
   }
 
   async getQuizzes() {
@@ -58,13 +63,13 @@ export class SupabaseQuizService implements QuizService {
   startListeningForNewPlayers(lobbyId: number, handleNewPlayer: (player: Player) => void) {
     this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.listen_for_new_players.push(handleNewPlayer)
+    this.eventListeners.listenForNewPlayers.push(handleNewPlayer)
   }
 
   async stopListeningForNewPlayers(lobbyId: number) {
     this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.listen_for_new_players = []
+    this.eventListeners.listenForNewPlayers = []
   }
 
   async createPlayerByLobbyId(lobbyId: number, username: string, file: File): Promise<Player> {
@@ -126,7 +131,7 @@ export class SupabaseQuizService implements QuizService {
   listenCountdown(lobbyId: number, callback: (count: number) => void): void {
     this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.update_countdown.push(callback)
+    this.eventListeners.updateCountdown.push(callback)
   }
 
   updateCountdown(lobbyId: number, count: number): void {
@@ -142,7 +147,33 @@ export class SupabaseQuizService implements QuizService {
   listenQuizStart(lobbyId: number, callback: () => void): void {
     this.initializeLobbyChannel(lobbyId)
 
-    this.eventListeners.start_quiz.push(callback)
+    this.eventListeners.startQuiz.push(callback)
+  }
+
+  listenQuestion(lobbyId: number, callback: (question: Question) => void): void {
+    this.initializeLobbyChannel(lobbyId)
+
+    this.eventListeners.listenQuestion.push(callback)
+  }
+
+  sendAnswer(lobbyId: number, playerId: number, answerId: number) {
+    const channel = this.initializeLobbyChannel(lobbyId)
+
+    channel.send({
+      type: 'broadcast',
+      event: 'send_answer',
+      payload: { answer_id: answerId, player_id: playerId },
+    })
+  }
+
+  listenPlayerQuestionPoints(
+    lobbyId: number,
+    playerId: number,
+    callback: (points: PlayerAnswer) => void,
+  ): void {
+    this.initializeLobbyChannel(lobbyId)
+
+    this.eventListeners.listenPlayerQuestionPoints.push({ playerId, callback })
   }
 
   private initializeLobbyChannel(lobbyId: number) {
@@ -165,18 +196,32 @@ export class SupabaseQuizService implements QuizService {
             ...payload.new,
             image: this.getPlayerAvatarUrl(payload.new),
           }
-          this.eventListeners.listen_for_new_players.forEach((listener) => {
+          this.eventListeners.listenForNewPlayers.forEach((listener) => {
             listener(player)
           })
         },
       )
+      .on<PlayerAnswer>(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'player_answers',
+        },
+        (payload) => {
+          this.eventListeners.listenPlayerQuestionPoints.forEach(({ playerId, callback }) => {
+            if (payload.new.playerId !== playerId) return
+            callback(payload.new)
+          })
+        },
+      )
       .on('broadcast', { event: 'start_quiz' }, (_payload) => {
-        this.eventListeners.start_quiz.forEach((listener: () => void) => {
+        this.eventListeners.startQuiz.forEach((listener: () => void) => {
           listener()
         })
       })
       .on<{ count: number }>('broadcast', { event: 'update_countdown' }, (payload) => {
-        this.eventListeners.update_countdown.forEach((listener) => {
+        this.eventListeners.updateCountdown.forEach((listener) => {
           listener(payload.payload.count)
         })
       })

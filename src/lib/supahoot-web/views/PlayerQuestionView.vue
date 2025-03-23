@@ -37,7 +37,7 @@ const restartState = () => {
 }
 
 onMounted(() => {
-  container.quizService.listenCountdown(lobbyId, (timeLeft) => {
+  container.quizService.listenCountdownBeforeQuestionStart(lobbyId, (timeLeft) => {
     restartState()
     countdown.value = timeLeft
   })

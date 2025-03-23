@@ -16,7 +16,7 @@ beforeEach(() => {
 
 describe('PlayerQuestionView', () => {
   beforeEach(() => {
-    container.quizService.listenCountdown.mockImplementation(
+    container.quizService.listenCountdownBeforeQuestionStart.mockImplementation(
       (_lobbyId: number, callback: (count: number) => void) => {
         callback(15)
       },
@@ -46,7 +46,7 @@ describe('PlayerQuestionView', () => {
 
 describe('PlayerQuestion when no time left', () => {
   beforeEach(() => {
-    container.quizService.listenCountdown.mockImplementation(
+    container.quizService.listenCountdownBeforeQuestionStart.mockImplementation(
       (_lobbyId: number, callback: (count: number) => void) => {
         callback(0)
       },

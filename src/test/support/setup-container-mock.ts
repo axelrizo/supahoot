@@ -17,14 +17,15 @@ const MockQuizService: MockService<QuizService> = {
   getQuizByLobbyId: vi.fn(),
   getQuestionByQuizIdAndQuestionOrder: vi.fn(),
   updateCountdownBeforeQuestionStart: vi.fn(),
+  listenCountdownBeforeQuestionStart: vi.fn(),
   updateStartAnswerQuestionCountdown: vi.fn(),
+  listenStartAnswerQuestionCountdown: vi.fn(),
   listenQuizStart: vi.fn(),
   listenQuestion: vi.fn(),
   sendAnswer: vi.fn(),
   listenPlayerQuestionPoints: vi.fn(),
   sendQuestion: vi.fn(),
 }
-
 
 const MockAvatarService: MockService<AvatarService> = {
   generateAvatarByString: vi.fn(),

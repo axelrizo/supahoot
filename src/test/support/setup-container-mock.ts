@@ -1,31 +1,38 @@
 import type { PlayerProvider } from '@/lib/supahoot-web/providers/player-provider'
+import type { AvatarService } from '@/lib/supahoot/services/avatar.service'
+import type { QuizService } from '@/lib/supahoot/services/quiz.service'
 import { config } from '@vue/test-utils'
 import { vi } from 'vitest'
 
-const MockQuizService = vi.fn()
-MockQuizService.prototype.getQuizzes = vi.fn()
-MockQuizService.prototype.createLobby = vi.fn()
-MockQuizService.prototype.getPlayersByLobby = vi.fn()
-MockQuizService.prototype.startListeningForNewPlayers = vi.fn()
-MockQuizService.prototype.stopListeningForNewPlayers = vi.fn()
-MockQuizService.prototype.createPlayerByLobbyId = vi.fn()
-MockQuizService.prototype.startQuiz = vi.fn()
-MockQuizService.prototype.getQuizByLobbyId = vi.fn()
-MockQuizService.prototype.getQuestionByQuizIdAndQuestionOrder = vi.fn()
-MockQuizService.prototype.listenCountdown = vi.fn()
-MockQuizService.prototype.updateCountdownBeforeQuestionStart = vi.fn()
-MockQuizService.prototype.updateStartAnswerQuestionCountdown = vi.fn()
-MockQuizService.prototype.listenQuizStart = vi.fn()
-MockQuizService.prototype.listenQuestion = vi.fn()
-MockQuizService.prototype.sendAnswer = vi.fn()
-MockQuizService.prototype.listenPlayerQuestionPoints = vi.fn()
+type MockService<TypeService> = Record<keyof TypeService, ReturnType<typeof vi.fn>>
 
-const MockAvatarService = vi.fn()
-MockAvatarService.prototype.generateAvatarByString = vi.fn()
+const MockQuizService: MockService<QuizService> = {
+  getQuizzes: vi.fn(),
+  createLobby: vi.fn(),
+  getPlayersByLobby: vi.fn(),
+  startListeningForNewPlayers: vi.fn(),
+  stopListeningForNewPlayers: vi.fn(),
+  createPlayerByLobbyId: vi.fn(),
+  startQuiz: vi.fn(),
+  getQuizByLobbyId: vi.fn(),
+  getQuestionByQuizIdAndQuestionOrder: vi.fn(),
+  updateCountdownBeforeQuestionStart: vi.fn(),
+  updateStartAnswerQuestionCountdown: vi.fn(),
+  listenQuizStart: vi.fn(),
+  listenQuestion: vi.fn(),
+  sendAnswer: vi.fn(),
+  listenPlayerQuestionPoints: vi.fn(),
+  sendQuestion: vi.fn(),
+}
+
+
+const MockAvatarService: MockService<AvatarService> = {
+  generateAvatarByString: vi.fn(),
+}
 
 export const container = {
-  quizService: new MockQuizService(),
-  avatarService: new MockAvatarService(),
+  quizService: MockQuizService,
+  avatarService: MockAvatarService,
 }
 
 export const notificationProvider = {

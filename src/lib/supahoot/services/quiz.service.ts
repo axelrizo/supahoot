@@ -69,4 +69,8 @@ export interface QuizService {
     playerId: number,
     callback: (points: PlayerAnswer) => void,
   ): void
+  /**
+   * Send the question to the players
+   */
+  sendQuestion(lobbyId: number, question: Question): void
 }

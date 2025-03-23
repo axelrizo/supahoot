@@ -1,7 +1,11 @@
+import type { Player } from '@/lib/supahoot/quizzes/player'
+import type { PlayerAnswer } from '@/lib/supahoot/quizzes/player-answer'
 import type { Question } from '@/lib/supahoot/quizzes/question'
-import { container } from '@/test/support/setup-container-mock'
+import type { QuizService } from '@/lib/supahoot/services/quiz.service'
+import { container, playerProvider } from '@/test/support/setup-container-mock'
 import { HTMLUtils } from '@/test/support/utils/html-utils'
 import { mount, type VueWrapper } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminQuestionView from './AdminQuestionView.vue'
 
@@ -21,14 +25,18 @@ const question: Question = {
     { id: 4, title: 'Answer 4', is_correct: true, order: 4 },
   ],
 }
+const player: Player = { id: 1, username: 'Player', image: './image.png' }
 
 const LOADING = HTMLUtils.testId('loading')
 const BEFORE_QUESTION = HTMLUtils.testId('before-question')
 const STARTED_QUESTION = HTMLUtils.testId('started-question')
+const STATISTICS = HTMLUtils.testId('statistics')
 
 beforeEach(() => {
   router = getRouter()
   router.setParams(routerParams)
+
+  playerProvider.player = player
 })
 
 describe('AdminQuestionView', () => {
@@ -43,12 +51,48 @@ describe('AdminQuestionView', () => {
 
     expect(getQuestionService).toHaveBeenCalledWith(routerParams.quizId, routerParams.questionOrder)
   })
+
+  test('success: player information is displayed', () => {
+    const playerUsername = wrapper.get(HTMLUtils.testId('player-username'))
+
+    expect(playerUsername.text()).toContain(player.username)
+  })
+
+  test('success: player image is displayed', () => {
+    const playerImage = wrapper.get(HTMLUtils.testId('player-image'))
+
+    expect(playerImage.attributes('src')).toBe(player.image)
+  })
+
+  test('success: show player score and update it', async () => {
+    const playerAnswer: PlayerAnswer = { playerId: 1, answerId: 1, points: 100, id: 1 }
+    const implementation: QuizService['listenPlayerQuestionPoints'] = (
+      _lobbyId,
+      _playerId,
+      callback,
+    ) => {
+      callback(playerAnswer)
+    }
+
+    container.quizService.listenPlayerQuestionPoints
+      .mockImplementation(implementation)
+      .mockImplementation(implementation)
+
+    wrapper = mount(AdminQuestionView)
+
+    const playerScore = wrapper.get(HTMLUtils.testId('player-score'))
+
+    expect(playerScore.text()).toContain('0')
+    await nextTick()
+
+    expect(playerScore.text()).toContain(playerAnswer.points.toString())
+  })
 })
 
 describe('AdminQuestionView when does not has question yet', () => {
   beforeEach(() => {
     container.quizService.getQuestionByQuizIdAndQuestionOrder.mockResolvedValue(
-      new Promise(() => {}),
+      new Promise(() => { }),
     )
 
     wrapper = mount(AdminQuestionView)
@@ -70,6 +114,18 @@ describe('AdminQuestionView when does not has question yet', () => {
     const startedQuestionContainer = wrapper.find(STARTED_QUESTION)
 
     expect(startedQuestionContainer.exists()).toBe(false)
+  })
+
+  test("success: not show question's statistics", () => {
+    const questionStatistics = wrapper.find(STATISTICS)
+
+    expect(questionStatistics.exists()).toBe(false)
+  })
+
+  test('success: show loading question', () => {
+    const loadingSection = wrapper.find(LOADING)
+
+    expect(loadingSection.exists()).toBe(true)
   })
 })
 
@@ -96,6 +152,12 @@ describe('AdminQuestionView before start question', () => {
     const startedQuestionContainer = wrapper.find(STARTED_QUESTION)
 
     expect(startedQuestionContainer.exists()).toBe(false)
+  })
+
+  test("success: not show question's statistics", () => {
+    const questionStatistics = wrapper.find(STATISTICS)
+
+    expect(questionStatistics.exists()).toBe(false)
   })
 
   test('success: show before start question section', () => {
@@ -129,7 +191,7 @@ describe('AdminQuestionView before start question', () => {
   })
 })
 
-describe('AdminQuestionView when has started', () => {
+describe('AdminQuestionView when question has started', () => {
   beforeEach(() => {
     vi.useFakeTimers()
 
@@ -154,6 +216,12 @@ describe('AdminQuestionView when has started', () => {
     const beforeStartQuestionContainer = wrapper.find(BEFORE_QUESTION)
 
     expect(beforeStartQuestionContainer.exists()).toBe(false)
+  })
+
+  test("success: not show question's statistics", () => {
+    const questionStatistics = wrapper.find(STATISTICS)
+
+    expect(questionStatistics.exists()).toBe(false)
   })
 
   test('success: show started question section', () => {
@@ -209,5 +277,12 @@ describe('AdminQuestionView when has started', () => {
 
     vi.advanceTimersToNextTimer()
     expect(updateCountdownService).toHaveBeenCalledWith(routerParams.lobbyId, 19)
+  })
+
+  test('success: sends question to players in service', async () => {
+    const sendQuestionService = container.quizService.sendQuestion
+    await vi.advanceTimersToNextTimer()
+
+    expect(sendQuestionService).toHaveBeenCalledWith(routerParams.lobbyId, question)
   })
 })

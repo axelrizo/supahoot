@@ -60,8 +60,7 @@ onMounted(async () => {
       answeringCountdownInterval()
       clearInterval(beforeAnsweringCountdownInterval)
       stage.value = 'answering'
-      // container.quizService.sendQuestion(lobbyId, question.value!)
-      // return
+      return
     }
     container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
   }, UPDATE_COUNTER_INTERVAL_MS)
@@ -91,6 +90,11 @@ onMounted(async () => {
     </div>
     <div v-else-if="stage === 'answering'" data-testid="answering-stage">
       <div data-testid="time-left">{{ timeLeftToAnswer }}</div>
+      <div data-testid="question-title">{{ quiz?.questions[0].title }}</div>
+      <img :src="quiz?.questions[0].image" data-testid="question-image" />
+      <div v-for="answer in quiz?.questions[0].answers" :key="answer.id" data-testid="answer">
+        <div data-testid="answer-title">{{ answer.title }}</div>
+      </div>
     </div>
   </div>
 </template>

@@ -281,4 +281,46 @@ describe('AdminLobby answering stage', () => {
     vi.advanceTimersToNextTimer()
     expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 19)
   })
+
+  test('success: show question title', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    const $questionTitle = wrapper.get(`${ANSWERING_STAGE} ${testId('question-title')}`)
+    expect($questionTitle.text()).toContain(quiz.questions[0].title)
+  })
+
+  test('success: show question image', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    const $questionImage = wrapper.get(`${ANSWERING_STAGE} ${testId('question-image')}`)
+    expect($questionImage.attributes('src')).toBe(quiz.questions[0].image)
+  })
+
+  test('success: show answers', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    const $answers = wrapper.findAll(`${ANSWERING_STAGE} ${testId('answer')}`)
+    expect($answers).toHaveLength(quiz.questions[0].answers.length)
+  })
+
+  test('success: show answers tittles', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    const $answersTitles = wrapper.findAll(`${ANSWERING_STAGE} ${testId('answer-title')}`)
+    $answersTitles.forEach(($answerTitle, index) => {
+      expect($answerTitle.text()).toContain(quiz.questions[0].answers[index].title)
+    })
+  })
 })

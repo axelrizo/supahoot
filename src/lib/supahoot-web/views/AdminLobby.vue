@@ -9,7 +9,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const UPDATE_COUNTER_INTERVAL_MS = 1000
 
-const { timeToStartAnswering } = defineProps({
+const { timeToStartAnswering, timeToAnswer } = defineProps({
   timeToStartAnswering: Number,
   timeToAnswer: Number,
 })
@@ -30,6 +30,7 @@ const stage = ref<'lobby' | 'before-answer' | 'answering'>('lobby')
 const players = ref<Player[]>([])
 const quiz = ref<QuizWithQuestionsWithAnswers | null>(null)
 const timeLeftToStartAnswering = ref(timeToStartAnswering || 10)
+const timeLeftToAnswer = ref(timeToAnswer || 20)
 
 const handleInitializeQuizButtonClick = async () => {
   try {
@@ -47,18 +48,21 @@ onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
   quiz.value = await container.quizService.getQuizWithQuestionsAndAnswersByQuizId(quizId)
 
-  const beforeQuestionCountdownInterval = setInterval(() => {
+  const answeringCountdownInterval = () => {
+    setInterval(() => {
+      container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
+    }, UPDATE_COUNTER_INTERVAL_MS)
+  }
+
+  const beforeAnsweringCountdownInterval = setInterval(() => {
     if (timeLeftToStartAnswering.value === 0) {
-      // startAnswerQuestionsInterval()
-      clearInterval(beforeQuestionCountdownInterval)
+      answeringCountdownInterval()
+      clearInterval(beforeAnsweringCountdownInterval)
       stage.value = 'answering'
       // container.quizService.sendQuestion(lobbyId, question.value!)
       // return
     }
-    container.quizService.updateCountdownBeforeQuestionStart(
-      lobbyId,
-      timeLeftToStartAnswering.value--,
-    )
+    container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
   }, UPDATE_COUNTER_INTERVAL_MS)
 
   container.quizService.startListeningForNewPlayers(lobbyId, (player) => {
@@ -84,6 +88,8 @@ onMounted(async () => {
       <div data-testid="question-title">{{ quiz?.name }}</div>
       <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
     </div>
-    <div v-else-if="stage === 'answering'" data-testid="answering-stage"></div>
+    <div v-else-if="stage === 'answering'" data-testid="answering-stage">
+      <div data-testid="time-left">{{ timeLeftToAnswer }}</div>
+    </div>
   </div>
 </template>

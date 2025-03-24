@@ -169,7 +169,6 @@ describe('AdminLobby before-answer-stage', () => {
     { stage: 'answering stage', selector: ANSWERING_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby)
-
     await clickInitializeQuiz(wrapper)
 
     const $stage = wrapper.find(selector)
@@ -179,7 +178,6 @@ describe('AdminLobby before-answer-stage', () => {
   test('success: show question title', async () => {
     container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
     const wrapper = mount(AdminLobby)
-
     await clickInitializeQuiz(wrapper)
 
     const $questionTitle = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('question-title')}`)
@@ -200,20 +198,15 @@ describe('AdminLobby before-answer-stage', () => {
   })
 
   test('success: call service to update countdown before question start', async () => {
+    const countdownService = container.quizService.updateCountdownBeforeAnswer
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
     await clickInitializeQuiz(wrapper)
 
     vi.advanceTimersToNextTimer()
-    expect(container.quizService.updateCountdownBeforeQuestionStart).toHaveBeenCalledWith(
-      pageParams.lobbyId,
-      20,
-    )
+    expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 20)
 
     vi.advanceTimersToNextTimer()
-    expect(container.quizService.updateCountdownBeforeQuestionStart).toHaveBeenCalledWith(
-      pageParams.lobbyId,
-      19,
-    )
+    expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 19)
   })
 })
 
@@ -231,7 +224,6 @@ describe('AdminLobby answering stage', () => {
     { stage: 'before-answer-stage', selector: BEFORE_ANSWER_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
-
     await clickInitializeQuiz(wrapper)
     await finishTimeBeforeAnswer()
 
@@ -241,11 +233,38 @@ describe('AdminLobby answering stage', () => {
 
   test('success: show question stage when time to start answering is over', async () => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
-
     await clickInitializeQuiz(wrapper)
     await finishTimeBeforeAnswer()
 
     const $beforeQuestionStage = wrapper.find(ANSWERING_STAGE)
     expect($beforeQuestionStage.exists()).toBe(true)
+  })
+
+  test('success: show time left to answer question and show updated time', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    const $timeLeft = wrapper.get(`${ANSWERING_STAGE} ${testId('time-left')}`)
+
+    expect($timeLeft.text()).toContain('20')
+
+    vi.advanceTimersToNextTimer()
+    await flushPromises()
+
+    expect($timeLeft.text()).toContain('19')
+  })
+
+  test('success: call service to update answering countdown', async () => {
+    const countdownService = container.quizService.updateAnsweringCountdown
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+
+    vi.advanceTimersToNextTimer()
+    expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 20)
+
+    vi.advanceTimersToNextTimer()
+    expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 19)
   })
 })

@@ -26,7 +26,7 @@ const quizId = parseInt(route.params.quizId as string)
 const lobbyHref = router.resolve({ name: 'player-lobby' }).href
 const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
-const stage = ref<'lobby' | 'before-answer' | ''>('lobby')
+const stage = ref<'lobby' | 'before-answer' | 'answering'>('lobby')
 const players = ref<Player[]>([])
 const quiz = ref<QuizWithQuestionsWithAnswers | null>(null)
 const timeLeftToStartAnswering = ref(timeToStartAnswering || 10)
@@ -51,7 +51,7 @@ onMounted(async () => {
     if (timeLeftToStartAnswering.value === 0) {
       // startAnswerQuestionsInterval()
       clearInterval(beforeQuestionCountdownInterval)
-      stage.value = ''
+      stage.value = 'answering'
       // container.quizService.sendQuestion(lobbyId, question.value!)
       // return
     }
@@ -84,5 +84,6 @@ onMounted(async () => {
       <div data-testid="question-title">{{ quiz?.name }}</div>
       <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
     </div>
+    <div v-else-if="stage === 'answering'" data-testid="answering-stage"></div>
   </div>
 </template>

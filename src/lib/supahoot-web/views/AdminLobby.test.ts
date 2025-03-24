@@ -3,7 +3,7 @@ import type { QuizWithQuestionsWithAnswers } from '@/lib/supahoot/quizzes/quiz'
 import MockComponent from '@/test/support/MockComponent.vue'
 import { container } from '@/test/support/setup-container-mock'
 import { HTMLUtils, testId } from '@/test/support/utils/html-utils'
-import { flushPromises, mount, shallowMount } from '@vue/test-utils'
+import { flushPromises, mount, shallowMount, VueWrapper } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
@@ -30,6 +30,16 @@ const quiz: QuizWithQuestionsWithAnswers = {
       answers: [{ id: 1, title: 'Answer 1', isCorrect: true, order: 1 }],
     },
   ],
+}
+
+const clickInitializeQuiz = async (wrapper: VueWrapper) => {
+  await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+}
+
+const finishTimeBeforeAnswer = async () => {
+  vi.advanceTimersToNextTimer()
+  vi.advanceTimersToNextTimer()
+  await flushPromises()
 }
 
 beforeEach(() => {
@@ -120,7 +130,7 @@ describe('AdminLobby lobby-stage', () => {
   test('success: can initialize the quiz using the service', async () => {
     const wrapper = mount(AdminLobby)
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     expect(container.quizService.startQuiz).toHaveBeenCalledTimes(1)
   })
@@ -128,7 +138,7 @@ describe('AdminLobby lobby-stage', () => {
   test('success: stop listening for new players when quiz initialized', async () => {
     const wrapper = mount(AdminLobby)
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalledWith(
       pageParams.lobbyId,
@@ -138,7 +148,7 @@ describe('AdminLobby lobby-stage', () => {
   test('success: show before question stage when quiz initialized', async () => {
     const wrapper = mount(AdminLobby)
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     const $beforeQuestionStage = wrapper.find(`${BEFORE_ANSWER_STAGE}`)
     expect($beforeQuestionStage.exists()).toBe(true)
@@ -160,7 +170,7 @@ describe('AdminLobby before-answer-stage', () => {
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby)
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     const $stage = wrapper.find(selector)
     expect($stage.exists()).toBe(false)
@@ -170,7 +180,7 @@ describe('AdminLobby before-answer-stage', () => {
     container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
     const wrapper = mount(AdminLobby)
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     const $questionTitle = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('question-title')}`)
     expect($questionTitle.text()).toContain(quiz.name)
@@ -178,7 +188,7 @@ describe('AdminLobby before-answer-stage', () => {
 
   test('success: show time left to start question and show updated time', async () => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     const $timeLeft = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('time-left')}`)
     expect($timeLeft.text()).toContain('20')
@@ -191,7 +201,7 @@ describe('AdminLobby before-answer-stage', () => {
 
   test('success: call service to update countdown before question start', async () => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+    await clickInitializeQuiz(wrapper)
 
     vi.advanceTimersToNextTimer()
     expect(container.quizService.updateCountdownBeforeQuestionStart).toHaveBeenCalledWith(
@@ -216,17 +226,14 @@ describe('AdminLobby answering stage', () => {
     vi.restoreAllMocks()
   })
 
-  test.only.each([
+  test.each([
     { stage: 'lobby-stage', selector: LOBBY_STAGE },
     { stage: 'before-answer-stage', selector: BEFORE_ANSWER_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
 
-    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
-
-    vi.advanceTimersToNextTimer()
-    vi.advanceTimersToNextTimer()
-    await flushPromises()
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
 
     const $stage = wrapper.find(selector)
     expect($stage.exists()).toBe(false)
@@ -235,11 +242,10 @@ describe('AdminLobby answering stage', () => {
   test('success: show question stage when time to start answering is over', async () => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
 
-    vi.advanceTimersToNextTimer()
-    vi.advanceTimersToNextTimer()
-    await flushPromises()
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
 
-    const $beforeQuestionStage = wrapper.find(`${BEFORE_ANSWER_STAGE}`)
-    expect($beforeQuestionStage.exists()).toBe(false)
+    const $beforeQuestionStage = wrapper.find(ANSWERING_STAGE)
+    expect($beforeQuestionStage.exists()).toBe(true)
   })
 })

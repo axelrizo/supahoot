@@ -1,6 +1,6 @@
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
-import type { Question } from '@supahoot/quizzes/question'
+import type { Question, QuestionWithAnswers } from '@supahoot/quizzes/question'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import type { PlayerAnswer } from '../quizzes/player-answer'
 
@@ -80,7 +80,7 @@ export interface QuizService {
   /**
    * Send the question to the players
    */
-  sendQuestion(lobbyId: number, question: Question): void
+  sendQuestion(lobbyId: number, question: QuestionWithAnswers): void
   /**
    * Get quiz details by the quiz id
    */

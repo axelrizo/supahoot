@@ -37,6 +37,7 @@ const handleInitializeQuizButtonClick = async () => {
     await container.quizService.startQuiz(lobbyId)
     await container.quizService.stopListeningForNewPlayers(lobbyId)
     stage.value = 'before-answer'
+    container.quizService.sendQuestion(lobbyId, quiz.value!.questions[0])
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification('Error: ' + error.message)

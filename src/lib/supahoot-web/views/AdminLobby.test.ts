@@ -27,7 +27,12 @@ const quiz: QuizWithQuestionsWithAnswers = {
       title: 'Question 1',
       image: 'image1',
       order: 1,
-      answers: [{ id: 1, title: 'Answer 1', isCorrect: true, order: 1 }],
+      answers: [
+        { id: 1, title: 'Answer 1', isCorrect: true, order: 1 },
+        { id: 2, title: 'Answer 2', isCorrect: true, order: 2 },
+        { id: 3, title: 'Answer 3', isCorrect: true, order: 3 },
+        { id: 4, title: 'Answer 4', isCorrect: true, order: 4 },
+      ],
     },
   ],
 }
@@ -207,6 +212,15 @@ describe('AdminLobby before-answer-stage', () => {
 
     vi.advanceTimersToNextTimer()
     expect(countdownService).toHaveBeenCalledWith(pageParams.lobbyId, 19)
+  })
+
+  test('success: call service to send question to players', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const sendQuestionService = container.quizService.sendQuestion
+    const wrapper = mount(AdminLobby)
+    await clickInitializeQuiz(wrapper)
+
+    expect(sendQuestionService).toHaveBeenCalledWith(pageParams.lobbyId, quiz.questions[0])
   })
 })
 

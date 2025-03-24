@@ -13,6 +13,7 @@ let router: RouterMock
 const LOBBY_STAGE = HTMLUtils.testId('lobby-stage')
 const BEFORE_ANSWER_STAGE = HTMLUtils.testId('before-answer-stage')
 const ANSWERING_STAGE = HTMLUtils.testId('answering-stage')
+const STATISTICS_STAGE = HTMLUtils.testId('statistics-stage')
 
 const pageParams = { quizId: 2, lobbyId: 1 }
 
@@ -47,6 +48,12 @@ const finishTimeBeforeAnswer = async () => {
   await flushPromises()
 }
 
+const finishAnsweringTime = async () => {
+  vi.advanceTimersToNextTimer()
+  vi.advanceTimersToNextTimer()
+  await flushPromises()
+}
+
 beforeEach(() => {
   router = getRouter()
   router.setParams(pageParams)
@@ -61,6 +68,7 @@ describe('AdminLobby lobby-stage', () => {
   test.each([
     { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE },
     { stage: 'answering stage', selector: ANSWERING_STAGE },
+    { stage: 'statistics stage', selector: STATISTICS_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby)
 
@@ -172,6 +180,7 @@ describe('AdminLobby before-answer-stage', () => {
   test.each([
     { stage: 'lobby-stage', selector: LOBBY_STAGE },
     { stage: 'answering stage', selector: ANSWERING_STAGE },
+    { stage: 'statistics stage', selector: STATISTICS_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby)
     await clickInitializeQuiz(wrapper)
@@ -236,6 +245,7 @@ describe('AdminLobby answering stage', () => {
   test.each([
     { stage: 'lobby-stage', selector: LOBBY_STAGE },
     { stage: 'before-answer-stage', selector: BEFORE_ANSWER_STAGE },
+    { stage: 'statistics stage', selector: STATISTICS_STAGE },
   ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
     await clickInitializeQuiz(wrapper)
@@ -302,7 +312,7 @@ describe('AdminLobby answering stage', () => {
     expect($questionImage.attributes('src')).toBe(quiz.questions[0].image)
   })
 
-  test('success: show answers', async () => {
+  test('success: show questions answers', async () => {
     container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
     await clickInitializeQuiz(wrapper)
@@ -322,5 +332,39 @@ describe('AdminLobby answering stage', () => {
     $answersTitles.forEach(($answerTitle, index) => {
       expect($answerTitle.text()).toContain(quiz.questions[0].answers[index].title)
     })
+  })
+})
+
+describe('AdminLobby statistics stage', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test.each([
+    { stage: 'lobby-stage', selector: LOBBY_STAGE },
+    { stage: 'before-answer-stage', selector: BEFORE_ANSWER_STAGE },
+    { stage: 'answering stage', selector: ANSWERING_STAGE },
+  ])(`success: not show $stage`, async ({ selector }) => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $stage = wrapper.find(selector)
+    expect($stage.exists()).toBe(false)
+  })
+
+  test('success: show statistics stage when time to answer is over', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $statisticsStage = wrapper.find(STATISTICS_STAGE)
+    expect($statisticsStage.exists()).toBe(true)
   })
 })

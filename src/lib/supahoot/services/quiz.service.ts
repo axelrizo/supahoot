@@ -44,7 +44,7 @@ export interface QuizService {
   /**
    * Update the countdown before the question start
    */
-  updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void
+  updateCountdownBeforeAnswer(lobbyId: number, count: number): void
   /**
    * Listen countdown before the question start
    */
@@ -52,7 +52,7 @@ export interface QuizService {
   /**
    * Update the countdown to start answering the question
    */
-  updateStartAnswerQuestionCountdown(lobbyId: number, count: number): void
+  updateAnsweringCountdown(lobbyId: number, count: number): void
   /**
    * Listen countdown to start answering the question
    */

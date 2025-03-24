@@ -25,6 +25,7 @@ const MockQuizService: MockService<QuizService> = {
   sendAnswer: vi.fn(),
   listenPlayerQuestionPoints: vi.fn(),
   sendQuestion: vi.fn(),
+  getQuizWithQuestionsAndAnswersByQuizId: vi.fn(),
 }
 
 const MockAvatarService: MockService<AvatarService> = {

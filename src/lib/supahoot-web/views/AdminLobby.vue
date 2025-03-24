@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import type { Player } from '@/lib/supahoot/quizzes/player'
+import type { QuizWithQuestionsWithAnswers } from '@/lib/supahoot/quizzes/quiz'
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import QrcodeVue from 'qrcode.vue'
-import { inject, onMounted, onUnmounted, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { inject, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const UPDATE_COUNTER_INTERVAL_MS = 1000
+
+const { timeToStartAnswering } = defineProps({
+  timeToStartAnswering: Number,
+  timeToAnswer: Number,
+})
 
 const container = inject<ServicesContainer>('container')!
 const notificationProvider = inject<NotificationProvider>('notificationProvider')!
@@ -15,20 +23,19 @@ const router = useRouter()
 const lobbyId = parseInt(route.params.lobbyId as string)
 const quizId = parseInt(route.params.quizId as string)
 
-const lobbyNamedRoute = { name: 'player-lobby', params: { lobbyId: lobbyId } }
-const lobbyHref = router.resolve(lobbyNamedRoute).href
+const lobbyHref = router.resolve({ name: 'player-lobby' }).href
 const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
+const stage = ref<'lobby' | 'before-question'>('lobby')
 const players = ref<Player[]>([])
+const quiz = ref<QuizWithQuestionsWithAnswers | null>(null)
+const timeLeftToStartAnswering = ref(timeToStartAnswering || 10)
 
-const handleClickLink = async () => {
+const handleInitializeQuizButtonClick = async () => {
   try {
     await container.quizService.startQuiz(lobbyId)
-
-    await router.push({
-      name: 'admin-quiz',
-      params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 },
-    })
+    await container.quizService.stopListeningForNewPlayers(lobbyId)
+    stage.value = 'before-question'
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification('Error: ' + error.message)
@@ -38,37 +45,43 @@ const handleClickLink = async () => {
 
 onMounted(async () => {
   players.value = await container.quizService.getPlayersByLobby(lobbyId)
+  quiz.value = await container.quizService.getQuizWithQuestionsAndAnswersByQuizId(quizId)
+
+  const beforeQuestionCountdownInterval = setInterval(() => {
+    if (timeLeftToStartAnswering.value === 0) {
+      // startAnswerQuestionsInterval()
+      clearInterval(beforeQuestionCountdownInterval)
+      // container.quizService.sendQuestion(lobbyId, question.value!)
+      // return
+    }
+    container.quizService.updateCountdownBeforeQuestionStart(
+      lobbyId,
+      timeLeftToStartAnswering.value--,
+    )
+  }, UPDATE_COUNTER_INTERVAL_MS)
+
   container.quizService.startListeningForNewPlayers(lobbyId, (player) => {
     players.value.push(player)
   })
-})
-
-onUnmounted(async () => {
-  try {
-    await container.quizService.stopListeningForNewPlayers(lobbyId)
-  } catch (error) {
-    if (error instanceof Error) {
-      notificationProvider.showNotification('Error: ' + error.message)
-    }
-  }
 })
 </script>
 
 <template>
   <div>
-    <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
-    <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
-    <div>
+    <div v-if="stage === 'lobby'" data-testid="lobby-stage">
+      <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
       <div data-testid="player" v-for="player in players" :key="player.id">
-        <p data-testid="player-username">{{ player.username }}</p>
-        <img data-testid="player-image" :src="player.image" />
+        <p data-testid="username">{{ player.username }}</p>
+        <img data-testid="avatar" :src="player.image" />
       </div>
+      <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
+      <button data-testid="initialize-quiz" @click="handleInitializeQuizButtonClick">
+        initialize quiz
+      </button>
     </div>
-    <RouterLink
-      data-testid="initialize-quiz-button"
-      @click="handleClickLink"
-      :to="{ name: 'admin-quiz', params: { quizId: quizId, lobbyId: lobbyId, questionOrder: 1 } }"
-      >Initialize Quiz
-    </RouterLink>
+    <div v-else-if="stage === 'before-question'" data-testid="before-question-stage">
+      <div data-testid="question-title">{{ quiz?.name }}</div>
+      <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
+    </div>
   </div>
 </template>

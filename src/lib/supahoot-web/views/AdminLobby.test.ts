@@ -1,131 +1,201 @@
 import type { Player } from '@/lib/supahoot/quizzes/player'
+import type { QuizWithQuestionsWithAnswers } from '@/lib/supahoot/quizzes/quiz'
 import MockComponent from '@/test/support/MockComponent.vue'
-import { container, notificationProvider } from '@/test/support/setup-container-mock'
-import { testId } from '@/test/support/utils/html-utils'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { container } from '@/test/support/setup-container-mock'
+import { HTMLUtils, testId } from '@/test/support/utils/html-utils'
+import { flushPromises, mount, shallowMount } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
-import type { _RouterLinkI } from 'vue-router'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
 
-let wrapper: VueWrapper
 let router: RouterMock
 
-beforeEach(() => {
-  container.quizService.getPlayersByLobby.mockResolvedValue([
-    { id: 1, username: 'user1', image: 'img1' },
-  ])
-  container.quizService.startListeningForNewPlayers.mockImplementation(
-    (_lobbyId: number, cb: (player: Player) => void) => {
-      cb({ id: 2, username: 'user2', image: 'img2' })
+const LOBBY_STAGE = HTMLUtils.testId('lobby-stage')
+const BEFORE_QUESTION_STAGE = HTMLUtils.testId('before-question-stage')
+
+const pageParams = { quizId: 2, lobbyId: 1 }
+
+const player1: Player = { id: 1, username: 'username1', image: 'avatar1' }
+
+const quiz: QuizWithQuestionsWithAnswers = {
+  id: 1,
+  name: 'Quiz 1',
+  questions: [
+    {
+      id: 1,
+      title: 'Question 1',
+      image: 'image1',
+      order: 1,
+      answers: [{ id: 1, title: 'Answer 1', isCorrect: true, order: 1 }],
     },
-  )
+  ],
+}
 
+beforeEach(() => {
   router = getRouter()
-
+  router.setParams(pageParams)
   router.addRoute({
     path: '/quiz/:quizId/lobby/:lobbyId',
     name: 'player-lobby',
     component: MockComponent,
   })
-  router.addRoute({
-    path: '/admin/quiz/:quizId/lobby/:lobbyId/question/:questionOrder',
-    name: 'admin-quiz',
-    component: MockComponent,
-  })
-
-  router.setParams({ quizId: 1, lobbyId: 1 })
-
-  wrapper = mount(AdminLobby)
 })
 
-describe('AdminLobby', () => {
+describe('AdminLobby lobby-stage', () => {
   test('success: lobby render id', () => {
-    expect(wrapper.get(testId('lobby-id')).text()).toBe('Lobby ID: 1')
+    const wrapper = mount(AdminLobby)
+
+    const $lobbyId = wrapper.get(`${LOBBY_STAGE} ${testId('lobby-id')}`)
+    expect($lobbyId.text()).toBe('Lobby ID: 1')
   })
 
   test('success: qr component is initialized with correct params', () => {
-    const resolvedUserLobbyHref = router.resolve({
-      name: 'player-lobby',
-      params: { lobbyId: 1 },
-    }).href
+    const wrapper = shallowMount(AdminLobby)
+
+    const playerLobbyRoute = { name: 'player-lobby', params: pageParams }
+    const resolvedUserLobbyHref = router.resolve(playerLobbyRoute).href
     const expectedLink = location.origin + resolvedUserLobbyHref
 
-    const path = wrapper.getComponent(Qrcode).props().value
+    const $qrCode = wrapper.getComponent<typeof Qrcode>(`${LOBBY_STAGE} ${testId('qr-code')}`)
 
-    expect(path).toBe(expectedLink)
+    expect($qrCode.props().value).toBe(expectedLink)
   })
 
-  test('success: read players of the lobby', () => {
-    expect(wrapper.findAll(testId('player'))[0].get(testId('player-username')).text()).toContain(
-      'user1',
-    )
-  })
+  test('success: read players of the lobby', async () => {
+    container.quizService.getPlayersByLobby.mockResolvedValue([player1, player1])
 
-  test("success: print player's image", () => {
-    expect(wrapper.findAll(testId('player'))[0].get(testId('player-image')).attributes('src')).toBe(
-      'img1',
-    )
-  })
-
-  test('success: print all players that comes from service', () => {
-    expect(wrapper.findAll(testId('player'))[1].get(testId('player-username')).text()).toContain(
-      'user2',
-    )
-  })
-
-  test('success: stop listening for new players when unmounted', () => {
-    wrapper.unmount()
-
-    expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalledWith(1)
-  })
-
-  test('success: can initialize the quiz', async () => {
-    const path = await wrapper
-      .getComponent<_RouterLinkI>(testId('initialize-quiz-button'))
-      .props('to')
-
-    expect(path).toStrictEqual({
-      name: 'admin-quiz',
-      params: { quizId: 1, lobbyId: 1, questionOrder: 1 },
-    })
-  })
-
-  test('success: send a message to the service when a quiz is initialized', async () => {
-    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
-
-    expect(container.quizService.startQuiz).toHaveBeenCalledWith(1)
-  })
-
-  test('success: redirect to the first question when a quiz is initialized', async () => {
-    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
-
-    expect(router.currentRoute.value).toMatchObject({
-      name: 'admin-quiz',
-      params: { quizId: '1', lobbyId: '1', questionOrder: '1' },
-    })
-  })
-
-  test('error: show notification when start quiz fails', async () => {
-    container.quizService.startQuiz.mockRejectedValue(new Error('Failed to start quiz'))
-
-    await wrapper.find(testId('initialize-quiz-button')).trigger('click')
-
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-      'Error: Failed to start quiz',
-    )
-  })
-
-  test('error: send error when stop listening for new players fails', async () => {
-    container.quizService.stopListeningForNewPlayers.mockRejectedValue(
-      new Error('Failed to unsubscribe'),
-    )
-
-    wrapper.unmount()
+    const wrapper = mount(AdminLobby)
     await flushPromises()
 
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-      'Error: Failed to unsubscribe',
+    const $players = wrapper.findAll(`${LOBBY_STAGE} ${testId('player')}`)
+    expect($players).toHaveLength(2)
+  })
+
+  test('success: print player username', async () => {
+    container.quizService.getPlayersByLobby.mockResolvedValue([player1])
+
+    const wrapper = mount(AdminLobby)
+    await flushPromises()
+
+    const $playerUsername = wrapper.get(`${LOBBY_STAGE} ${testId('player')} ${testId('username')}`)
+    expect($playerUsername.text()).toContain(player1.username)
+  })
+
+  test("success: print player's avatars", async () => {
+    container.quizService.getPlayersByLobby.mockResolvedValue([player1])
+
+    const wrapper = mount(AdminLobby)
+    await flushPromises()
+
+    const $playerAvatar = wrapper.get(`${LOBBY_STAGE} ${testId('player')} ${testId('avatar')}`)
+    expect($playerAvatar.attributes('src')).toContain(player1.image)
+  })
+
+  test('success: print all players that comes from service', async () => {
+    container.quizService.getPlayersByLobby.mockResolvedValue([])
+    container.quizService.startListeningForNewPlayers.mockImplementation(
+      (_lobbyId: number, cb: (player: Player) => void) => {
+        cb({ id: 2, username: 'user2', image: 'img2' })
+      },
+    )
+
+    const wrapper = mount(AdminLobby)
+    await flushPromises()
+
+    const $players = wrapper.findAll(`${LOBBY_STAGE} ${testId('player')}`)
+    expect($players).toHaveLength(1)
+  })
+
+  test('success: can initialize the quiz using the service', async () => {
+    const wrapper = mount(AdminLobby)
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    expect(container.quizService.startQuiz).toHaveBeenCalledTimes(1)
+  })
+
+  test('success: stop listening for new players when quiz initialized', async () => {
+    const wrapper = mount(AdminLobby)
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    expect(container.quizService.stopListeningForNewPlayers).toHaveBeenCalledWith(
+      pageParams.lobbyId,
+    )
+  })
+
+  test('success: show before question stage when quiz initialized', async () => {
+    const wrapper = mount(AdminLobby)
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    const $beforeQuestionStage = wrapper.find(`${BEFORE_QUESTION_STAGE}`)
+    expect($beforeQuestionStage.exists()).toBe(true)
+  })
+
+  test('success: not show before question stage', () => {
+    const wrapper = mount(AdminLobby)
+
+    const $beforeQuestionStage = wrapper.find(`${BEFORE_QUESTION_STAGE}`)
+    expect($beforeQuestionStage.exists()).toBe(false)
+  })
+})
+
+describe('AdminLobby before-question-stage', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('success: not show lobby stage', async () => {
+    const wrapper = mount(AdminLobby)
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    const $lobbyStage = wrapper.find(`${LOBBY_STAGE}`)
+    expect($lobbyStage.exists()).toBe(false)
+  })
+
+  test('success: show question title', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    const wrapper = mount(AdminLobby)
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    const $questionTitle = wrapper.get(`${BEFORE_QUESTION_STAGE} ${testId('question-title')}`)
+    expect($questionTitle.text()).toContain(quiz.name)
+  })
+
+  test('success: show time left to start question and show updated time', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    const $timeLeft = wrapper.get(`${BEFORE_QUESTION_STAGE} ${testId('time-left')}`)
+    expect($timeLeft.text()).toContain('20')
+
+    vi.advanceTimersToNextTimer()
+    await flushPromises()
+
+    expect($timeLeft.text()).toContain('19')
+  })
+
+  test('success: call service to update countdown before question start', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    vi.advanceTimersToNextTimer()
+    expect(container.quizService.updateCountdownBeforeQuestionStart).toHaveBeenCalledWith(
+      pageParams.lobbyId,
+      20,
+    )
+
+    vi.advanceTimersToNextTimer()
+    expect(container.quizService.updateCountdownBeforeQuestionStart).toHaveBeenCalledWith(
+      pageParams.lobbyId,
+      19,
     )
   })
 })

@@ -26,7 +26,7 @@ const quizId = parseInt(route.params.quizId as string)
 const lobbyHref = router.resolve({ name: 'player-lobby' }).href
 const lobbyLink = new URL(location.origin + lobbyHref).toString()
 
-const stage = ref<'lobby' | 'before-question'>('lobby')
+const stage = ref<'lobby' | 'before-answer' | ''>('lobby')
 const players = ref<Player[]>([])
 const quiz = ref<QuizWithQuestionsWithAnswers | null>(null)
 const timeLeftToStartAnswering = ref(timeToStartAnswering || 10)
@@ -35,7 +35,7 @@ const handleInitializeQuizButtonClick = async () => {
   try {
     await container.quizService.startQuiz(lobbyId)
     await container.quizService.stopListeningForNewPlayers(lobbyId)
-    stage.value = 'before-question'
+    stage.value = 'before-answer'
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification('Error: ' + error.message)
@@ -51,6 +51,7 @@ onMounted(async () => {
     if (timeLeftToStartAnswering.value === 0) {
       // startAnswerQuestionsInterval()
       clearInterval(beforeQuestionCountdownInterval)
+      stage.value = ''
       // container.quizService.sendQuestion(lobbyId, question.value!)
       // return
     }
@@ -79,7 +80,7 @@ onMounted(async () => {
         initialize quiz
       </button>
     </div>
-    <div v-else-if="stage === 'before-question'" data-testid="before-question-stage">
+    <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
       <div data-testid="question-title">{{ quiz?.name }}</div>
       <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
     </div>

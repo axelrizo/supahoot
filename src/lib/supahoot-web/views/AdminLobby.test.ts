@@ -11,7 +11,8 @@ import AdminLobby from './AdminLobby.vue'
 let router: RouterMock
 
 const LOBBY_STAGE = HTMLUtils.testId('lobby-stage')
-const BEFORE_QUESTION_STAGE = HTMLUtils.testId('before-question-stage')
+const BEFORE_ANSWER_STAGE = HTMLUtils.testId('before-answer-stage')
+const ANSWERING_STAGE = HTMLUtils.testId('answering-stage')
 
 const pageParams = { quizId: 2, lobbyId: 1 }
 
@@ -42,6 +43,16 @@ beforeEach(() => {
 })
 
 describe('AdminLobby lobby-stage', () => {
+  test.each([
+    { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE },
+    { stage: 'answering stage', selector: ANSWERING_STAGE },
+  ])(`success: not show $stage`, async ({ selector }) => {
+    const wrapper = mount(AdminLobby)
+
+    const $stage = wrapper.find(selector)
+    expect($stage.exists()).toBe(false)
+  })
+
   test('success: lobby render id', () => {
     const wrapper = mount(AdminLobby)
 
@@ -129,19 +140,12 @@ describe('AdminLobby lobby-stage', () => {
 
     await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
 
-    const $beforeQuestionStage = wrapper.find(`${BEFORE_QUESTION_STAGE}`)
+    const $beforeQuestionStage = wrapper.find(`${BEFORE_ANSWER_STAGE}`)
     expect($beforeQuestionStage.exists()).toBe(true)
-  })
-
-  test('success: not show before question stage', () => {
-    const wrapper = mount(AdminLobby)
-
-    const $beforeQuestionStage = wrapper.find(`${BEFORE_QUESTION_STAGE}`)
-    expect($beforeQuestionStage.exists()).toBe(false)
   })
 })
 
-describe('AdminLobby before-question-stage', () => {
+describe('AdminLobby before-answer-stage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -150,13 +154,16 @@ describe('AdminLobby before-question-stage', () => {
     vi.restoreAllMocks()
   })
 
-  test('success: not show lobby stage', async () => {
+  test.each([
+    { stage: 'lobby-stage', selector: LOBBY_STAGE },
+    { stage: 'answering stage', selector: ANSWERING_STAGE },
+  ])(`success: not show $stage`, async ({ selector }) => {
     const wrapper = mount(AdminLobby)
 
     await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
 
-    const $lobbyStage = wrapper.find(`${LOBBY_STAGE}`)
-    expect($lobbyStage.exists()).toBe(false)
+    const $stage = wrapper.find(selector)
+    expect($stage.exists()).toBe(false)
   })
 
   test('success: show question title', async () => {
@@ -165,7 +172,7 @@ describe('AdminLobby before-question-stage', () => {
 
     await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
 
-    const $questionTitle = wrapper.get(`${BEFORE_QUESTION_STAGE} ${testId('question-title')}`)
+    const $questionTitle = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('question-title')}`)
     expect($questionTitle.text()).toContain(quiz.name)
   })
 
@@ -173,7 +180,7 @@ describe('AdminLobby before-question-stage', () => {
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 20 } })
     await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
 
-    const $timeLeft = wrapper.get(`${BEFORE_QUESTION_STAGE} ${testId('time-left')}`)
+    const $timeLeft = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('time-left')}`)
     expect($timeLeft.text()).toContain('20')
 
     vi.advanceTimersToNextTimer()
@@ -197,5 +204,42 @@ describe('AdminLobby before-question-stage', () => {
       pageParams.lobbyId,
       19,
     )
+  })
+})
+
+describe('AdminLobby answering stage', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test.only.each([
+    { stage: 'lobby-stage', selector: LOBBY_STAGE },
+    { stage: 'before-answer-stage', selector: BEFORE_ANSWER_STAGE },
+  ])(`success: not show $stage`, async ({ selector }) => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
+
+    await wrapper.get(`${LOBBY_STAGE} ${testId('initialize-quiz')}`).trigger('click')
+
+    vi.advanceTimersToNextTimer()
+    vi.advanceTimersToNextTimer()
+    await flushPromises()
+
+    const $stage = wrapper.find(selector)
+    expect($stage.exists()).toBe(false)
+  })
+
+  test('success: show question stage when time to start answering is over', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1 } })
+
+    vi.advanceTimersToNextTimer()
+    vi.advanceTimersToNextTimer()
+    await flushPromises()
+
+    const $beforeQuestionStage = wrapper.find(`${BEFORE_ANSWER_STAGE}`)
+    expect($beforeQuestionStage.exists()).toBe(false)
   })
 })

@@ -50,78 +50,51 @@ const answerWithPlayerCount = computed(() => {
   })
 })
 
+const startAnsweringCountdown = () => {
+  const interval = setInterval(() => {
+    if (timeLeftToAnswer.value === 0) {
+      clearInterval(interval)
+      stage.value = 'statistics'
+
+      container.quizService
+        .getPlayersCountPerAnswerInQuestionByQuestionId(
+          quiz.value!.questions[activeQuestion.value].id,
+        )
+        .then((currentAnswersPlayerCount) => {
+          answersPlayerCount.value = currentAnswersPlayerCount
+        })
+      return
+    }
+
+    container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
+  }, UPDATE_COUNTER_INTERVAL_MS)
+}
+
+const startBeforeAnsweringCountdown = () => {
+  const interval = setInterval(() => {
+    if (timeLeftToStartAnswering.value === 0) {
+      startAnsweringCountdown()
+      clearInterval(interval)
+      stage.value = 'answering'
+      return
+    }
+
+    container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
+  }, UPDATE_COUNTER_INTERVAL_MS)
+}
+
 const handleInitializeQuizButtonClick = async () => {
   try {
     await container.quizService.startQuiz(lobbyId)
     await container.quizService.stopListeningForNewPlayers(lobbyId)
     stage.value = 'before-answer'
-    await container.quizService.sendQuestion(lobbyId, quiz.value!.questions[activeQuestion.value])
-
-    const answeringCountdownInterval = () => {
-      const interval = setInterval(() => {
-        if (timeLeftToAnswer.value === 0) {
-          clearInterval(interval)
-          stage.value = 'statistics'
-
-          container.quizService
-            .getPlayersCountPerAnswerInQuestionByQuestionId(
-              quiz.value!.questions[activeQuestion.value].id,
-            )
-            .then((currentAnswersPlayerCount) => {
-              answersPlayerCount.value = currentAnswersPlayerCount
-            })
-          return
-        }
-
-        container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
-      }, UPDATE_COUNTER_INTERVAL_MS)
-    }
-
-    const beforeAnsweringCountdownInterval = setInterval(() => {
-      if (timeLeftToStartAnswering.value === 0) {
-        answeringCountdownInterval()
-        clearInterval(beforeAnsweringCountdownInterval)
-        stage.value = 'answering'
-        return
-      }
-      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
-    }, UPDATE_COUNTER_INTERVAL_MS)
+    container.quizService.sendQuestion(lobbyId, quiz.value!.questions[activeQuestion.value])
+    startBeforeAnsweringCountdown()
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification('Error: ' + error.message)
     }
   }
-}
-
-const startAnsweringCountdown = () => {
-  const interval = setInterval(() => {
-    if (timeLeftToAnswer.value > 0) {
-      container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
-    }
-
-    container.quizService
-      .getPlayersCountPerAnswerInQuestionByQuestionId(
-        quiz.value!.questions[activeQuestion.value].id,
-      )
-      .then((currentAnswersPlayerCount) => {
-        answersPlayerCount.value = currentAnswersPlayerCount
-      })
-
-    stage.value = 'statistics'
-    clearInterval(interval)
-  })
-}
-
-const startBeforeAnsweringCountdown = () => {
-  const interval = setInterval(() => {
-    if (timeLeftToStartAnswering.value > 0) {
-      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
-    }
-
-    stage.value = 'answering'
-    startAnsweringCountdown()
-    clearInterval(interval)
-  }, UPDATE_COUNTER_INTERVAL_MS)
 }
 
 const handleNextQuestionClick = async () => {

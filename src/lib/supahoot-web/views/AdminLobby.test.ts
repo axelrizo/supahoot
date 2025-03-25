@@ -6,6 +6,7 @@ import { HTMLUtils, testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, shallowMount, VueWrapper } from '@vue/test-utils'
 import Qrcode from 'qrcode.vue'
 import { nextTick } from 'vue'
+import type { _RouterLinkI } from 'vue-router'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import AdminLobby from './AdminLobby.vue'
 
@@ -20,7 +21,7 @@ const pageParams = { quizId: 2, lobbyId: 1 }
 
 const player1: Player = { id: 1, username: 'username1', image: 'avatar1' }
 
-const quiz: QuizWithQuestionsWithAnswers = {
+const quizWithThreeQuestions: QuizWithQuestionsWithAnswers = {
   id: 1,
   name: 'Quiz 1',
   questions: [
@@ -63,6 +64,25 @@ const quiz: QuizWithQuestionsWithAnswers = {
   ],
 }
 
+const quizWithOneQuestion: QuizWithQuestionsWithAnswers = {
+  id: 1,
+  name: 'Quiz 1',
+  questions: [
+    {
+      id: 1,
+      title: 'Question 1',
+      image: 'image1',
+      order: 1,
+      answers: [
+        { id: 1, title: 'Answer 1', isCorrect: true, order: 1 },
+        { id: 2, title: 'Answer 2', isCorrect: false, order: 2 },
+        { id: 3, title: 'Answer 3', isCorrect: false, order: 3 },
+        { id: 4, title: 'Answer 4', isCorrect: false, order: 4 },
+      ],
+    },
+  ],
+}
+
 const answerPlayerCountMap = [
   { answerId: 1, playerCount: 10 },
   { answerId: 2, playerCount: 20 },
@@ -97,9 +117,7 @@ beforeEach(() => {
 })
 
 describe('AdminLobby lobby-stage', () => {
-  beforeEach(() => {
-    // container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
-  })
+  beforeEach(() => {})
 
   test.each([
     { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE },
@@ -208,7 +226,9 @@ describe('AdminLobby before-answer-stage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
 
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
   })
 
   afterEach(() => {
@@ -228,12 +248,14 @@ describe('AdminLobby before-answer-stage', () => {
   })
 
   test('success: show question title', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     const wrapper = mount(AdminLobby)
     await clickInitializeQuiz(wrapper)
 
     const $questionTitle = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('question-title')}`)
-    expect($questionTitle.text()).toContain(quiz.name)
+    expect($questionTitle.text()).toContain(quizWithThreeQuestions.name)
   })
 
   test('success: show time left to start question and show updated time', async () => {
@@ -262,12 +284,17 @@ describe('AdminLobby before-answer-stage', () => {
   })
 
   test('success: call service to send question to players', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     const sendQuestionService = container.quizService.sendQuestion
     const wrapper = mount(AdminLobby)
     await clickInitializeQuiz(wrapper)
 
-    expect(sendQuestionService).toHaveBeenCalledWith(pageParams.lobbyId, quiz.questions[0])
+    expect(sendQuestionService).toHaveBeenCalledWith(
+      pageParams.lobbyId,
+      quizWithThreeQuestions.questions[0],
+    )
   })
 })
 
@@ -275,7 +302,9 @@ describe('AdminLobby answering stage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
 
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
   })
 
   afterEach(() => {
@@ -333,37 +362,45 @@ describe('AdminLobby answering stage', () => {
   })
 
   test('success: show question title', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
     await clickInitializeQuiz(wrapper)
     await finishTimeBeforeAnswer()
 
     const $questionTitle = wrapper.get(`${ANSWERING_STAGE} ${testId('question-title')}`)
-    expect($questionTitle.text()).toContain(quiz.questions[0].title)
+    expect($questionTitle.text()).toContain(quizWithThreeQuestions.questions[0].title)
   })
 
   test('success: show question image', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
     await clickInitializeQuiz(wrapper)
     await finishTimeBeforeAnswer()
 
     const $questionImage = wrapper.get(`${ANSWERING_STAGE} ${testId('question-image')}`)
-    expect($questionImage.attributes('src')).toBe(quiz.questions[0].image)
+    expect($questionImage.attributes('src')).toBe(quizWithThreeQuestions.questions[0].image)
   })
 
   test('success: show questions answers', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
     await clickInitializeQuiz(wrapper)
     await finishTimeBeforeAnswer()
 
     const $answers = wrapper.findAll(`${ANSWERING_STAGE} ${testId('answer')}`)
-    expect($answers).toHaveLength(quiz.questions[0].answers.length)
+    expect($answers).toHaveLength(quizWithThreeQuestions.questions[0].answers.length)
   })
 
   test('success: show answers tittles', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
     container.quizService.getPlayersCountPerAnswerInQuestionByQuestionId.mockResolvedValue(null)
 
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
@@ -372,7 +409,9 @@ describe('AdminLobby answering stage', () => {
 
     const $answersTitles = wrapper.findAll(`${ANSWERING_STAGE} ${testId('answer-title')}`)
     $answersTitles.forEach(($answerTitle, index) => {
-      expect($answerTitle.text()).toContain(quiz.questions[0].answers[index].title)
+      expect($answerTitle.text()).toContain(
+        quizWithThreeQuestions.questions[0].answers[index].title,
+      )
     })
   })
 })
@@ -381,7 +420,9 @@ describe('AdminLobby statistics stage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
 
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(quiz)
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithThreeQuestions,
+    )
 
     container.quizService.getPlayersCountPerAnswerInQuestionByQuestionId.mockResolvedValue(
       answerPlayerCountMap,
@@ -423,7 +464,7 @@ describe('AdminLobby statistics stage', () => {
     await finishAnsweringTime()
 
     const $questionTitle = wrapper.get(`${STATISTICS_STAGE} ${testId('question-title')}`)
-    expect($questionTitle.text()).toContain(quiz.questions[0].title)
+    expect($questionTitle.text()).toContain(quizWithThreeQuestions.questions[0].title)
   })
 
   test('success: show question answers', async () => {
@@ -433,7 +474,7 @@ describe('AdminLobby statistics stage', () => {
     await finishAnsweringTime()
 
     const $answers = wrapper.findAll(`${STATISTICS_STAGE} ${testId('answer')}`)
-    expect($answers).toHaveLength(quiz.questions[0].answers.length)
+    expect($answers).toHaveLength(quizWithThreeQuestions.questions[0].answers.length)
   })
 
   test('success: highlight correct answer', async () => {
@@ -445,7 +486,7 @@ describe('AdminLobby statistics stage', () => {
     const $correctAnswer = wrapper.get(
       `${STATISTICS_STAGE} ${testId('answer')}[data-is-correct=true]`,
     )
-    expect($correctAnswer.text()).toContain(quiz.questions[0].answers[0].title)
+    expect($correctAnswer.text()).toContain(quizWithThreeQuestions.questions[0].answers[0].title)
   })
 
   test('success: show answer title', async () => {
@@ -457,7 +498,9 @@ describe('AdminLobby statistics stage', () => {
     const $answersTitles = wrapper.findAll(`${STATISTICS_STAGE} ${testId('title')}`)
 
     $answersTitles.forEach(($answerTitle, index) => {
-      expect($answerTitle.text()).toContain(quiz.questions[0].answers[index].title)
+      expect($answerTitle.text()).toContain(
+        quizWithThreeQuestions.questions[0].answers[index].title,
+      )
     })
   })
 
@@ -487,7 +530,7 @@ describe('AdminLobby statistics stage', () => {
 
     expect(container.quizService.sendQuestion).toHaveBeenCalledWith(
       pageParams.lobbyId,
-      quiz.questions[1],
+      quizWithThreeQuestions.questions[1],
     )
 
     await finishTimeBeforeAnswer()
@@ -501,7 +544,7 @@ describe('AdminLobby statistics stage', () => {
 
     expect(container.quizService.sendQuestion).toHaveBeenCalledWith(
       pageParams.lobbyId,
-      quiz.questions[2],
+      quizWithThreeQuestions.questions[2],
     )
   })
 
@@ -518,5 +561,82 @@ describe('AdminLobby statistics stage', () => {
     await finishAnsweringTime()
     expect(container.quizService.updateCountdownBeforeAnswer).toHaveBeenCalledTimes(2)
     expect(container.quizService.updateAnsweringCountdown).toHaveBeenCalledTimes(2)
+  })
+
+  test('success: show before question stage when click next question', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $nextQuestion = wrapper.get(`${STATISTICS_STAGE} ${testId('next-question')}`)
+    await $nextQuestion.trigger('click')
+
+    const $beforeQuestionStage = wrapper.find(BEFORE_ANSWER_STAGE)
+    expect($beforeQuestionStage.exists()).toBe(true)
+  })
+
+  test('success: show awards button when no more questions', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithOneQuestion,
+    )
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $awards = wrapper.find(`${STATISTICS_STAGE} ${testId('awards-button')}`)
+    expect($awards.exists()).toBe(true)
+  })
+
+  test('success: awards button redirect to awards page', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithOneQuestion,
+    )
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $awards = wrapper.getComponent<_RouterLinkI>(
+      `${STATISTICS_STAGE} ${testId('awards-button')}`,
+    )
+    expect($awards.props('to')).toMatchObject({
+      name: 'admin-awards',
+      params: { quizId: pageParams.quizId, lobbyId: pageParams.lobbyId },
+    })
+  })
+
+  test('success: does not show next question button when no more questions', async () => {
+    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
+      quizWithOneQuestion,
+    )
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $awardsButton = wrapper.find(`${STATISTICS_STAGE} ${testId('awards-button')}`)
+    expect($awardsButton.exists()).toBe(true)
+  })
+
+  test('success: show next question when more questions', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $nextQuestion = wrapper.find(`${STATISTICS_STAGE} ${testId('next-question')}`)
+    expect($nextQuestion.exists()).toBe(true)
+  })
+
+  test('success: does not show awards when more questions', async () => {
+    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 1 } })
+    await clickInitializeQuiz(wrapper)
+    await finishTimeBeforeAnswer()
+    await finishAnsweringTime()
+
+    const $awards = wrapper.find(`${STATISTICS_STAGE} ${testId('awards-button')}`)
+    expect($awards.exists()).toBe(false)
   })
 })

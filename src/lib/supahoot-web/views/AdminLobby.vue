@@ -5,7 +5,7 @@ import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import QrcodeVue from 'qrcode.vue'
 import { computed, inject, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 const UPDATE_COUNTER_INTERVAL_MS = 1000
 const DEFAULT_TIMER_BEFORE_ANSWERING_IN_S = 10
@@ -49,6 +49,10 @@ const answerWithPlayerCount = computed(() => {
     }
   })
 })
+
+const showNextQuestionButton = computed(
+  () => activeQuestion.value < quiz.value!.questions.length - 1,
+)
 
 const startAnsweringCountdown = () => {
   const interval = setInterval(() => {
@@ -155,7 +159,21 @@ onMounted(async () => {
         <div data-testid="title">{{ answer.title }}</div>
         <div data-testid="player-count">{{ answer.playerCount }}</div>
       </div>
-      <button data-testid="next-question" @click="handleNextQuestionClick">next question</button>
+      <button
+        v-if="showNextQuestionButton"
+        data-testid="next-question"
+        @click="handleNextQuestionClick"
+      >
+        next question
+      </button>
+      <RouterLink
+        v-else
+        data-testid="awards-button"
+        @click="handleNextQuestionClick"
+        :to="{ name: 'admin-awards', params: { quizId, lobbyId } }"
+      >
+        awards
+      </RouterLink>
     </div>
   </div>
 </template>

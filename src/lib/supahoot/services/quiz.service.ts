@@ -85,4 +85,8 @@ export interface QuizService {
    * Get quiz details by the quiz id
    */
   getQuizWithQuestionsAndAnswersByQuizId(quizId: number): Promise<QuizWithQuestionsWithAnswers>
+  /**
+   * Get total players that chose that answer
+   */
+  getPlayersCountPerAnswerInQuestionByQuestionId(answerId: number): Promise<{ answerId: number, playerCount: number }[]>
 }

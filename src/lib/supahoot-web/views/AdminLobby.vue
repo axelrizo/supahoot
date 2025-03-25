@@ -4,10 +4,12 @@ import type { QuizWithQuestionsWithAnswers } from '@/lib/supahoot/quizzes/quiz'
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import QrcodeVue from 'qrcode.vue'
-import { inject, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const UPDATE_COUNTER_INTERVAL_MS = 1000
+const DEFAULT_TIMER_BEFORE_ANSWERING_IN_S = 10
+const DEFAULT_ANSWER_TIMER_IN_S = 20
 
 const { timeToStartAnswering, timeToAnswer } = defineProps({
   timeToStartAnswering: Number,
@@ -29,15 +31,61 @@ const lobbyLink = new URL(location.origin + lobbyHref).toString()
 const stage = ref<'lobby' | 'before-answer' | 'answering' | 'statistics'>('lobby')
 const players = ref<Player[]>([])
 const quiz = ref<QuizWithQuestionsWithAnswers | null>(null)
-const timeLeftToStartAnswering = ref(timeToStartAnswering || 10)
-const timeLeftToAnswer = ref(timeToAnswer || 20)
+const answersPlayerCount = ref<{ answerId: number; playerCount: number }[] | null>(null)
+const activeQuestion = ref(0)
+
+const timeLeftToStartAnswering = ref(timeToStartAnswering || DEFAULT_TIMER_BEFORE_ANSWERING_IN_S)
+const timeLeftToAnswer = ref(timeToAnswer || DEFAULT_ANSWER_TIMER_IN_S)
+
+const answerWithPlayerCount = computed(() => {
+  if (!quiz.value || stage.value !== 'statistics') return []
+
+  return quiz.value.questions[activeQuestion.value].answers.map((answer) => {
+    return {
+      ...answer,
+      playerCount: answersPlayerCount.value?.find(
+        (currentAnswer) => currentAnswer.answerId === answer.id,
+      )?.playerCount,
+    }
+  })
+})
 
 const handleInitializeQuizButtonClick = async () => {
   try {
     await container.quizService.startQuiz(lobbyId)
     await container.quizService.stopListeningForNewPlayers(lobbyId)
     stage.value = 'before-answer'
-    container.quizService.sendQuestion(lobbyId, quiz.value!.questions[0])
+    await container.quizService.sendQuestion(lobbyId, quiz.value!.questions[activeQuestion.value])
+
+    const answeringCountdownInterval = () => {
+      const interval = setInterval(() => {
+        if (timeLeftToAnswer.value === 0) {
+          clearInterval(interval)
+          stage.value = 'statistics'
+
+          container.quizService
+            .getPlayersCountPerAnswerInQuestionByQuestionId(
+              quiz.value!.questions[activeQuestion.value].id,
+            )
+            .then((currentAnswersPlayerCount) => {
+              answersPlayerCount.value = currentAnswersPlayerCount
+            })
+          return
+        }
+
+        container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
+      }, UPDATE_COUNTER_INTERVAL_MS)
+    }
+
+    const beforeAnsweringCountdownInterval = setInterval(() => {
+      if (timeLeftToStartAnswering.value === 0) {
+        answeringCountdownInterval()
+        clearInterval(beforeAnsweringCountdownInterval)
+        stage.value = 'answering'
+        return
+      }
+      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
+    }, UPDATE_COUNTER_INTERVAL_MS)
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification('Error: ' + error.message)
@@ -45,35 +93,52 @@ const handleInitializeQuizButtonClick = async () => {
   }
 }
 
-onMounted(async () => {
-  players.value = await container.quizService.getPlayersByLobby(lobbyId)
-  quiz.value = await container.quizService.getQuizWithQuestionsAndAnswersByQuizId(quizId)
-
-  const answeringCountdownInterval = () => {
-    const interval = setInterval(() => {
-      if (timeLeftToAnswer.value === 0) {
-        clearInterval(interval)
-        stage.value = 'statistics'
-        return
-      }
-
+const startAnsweringCountdown = () => {
+  const interval = setInterval(() => {
+    if (timeLeftToAnswer.value > 0) {
       container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
-    }, UPDATE_COUNTER_INTERVAL_MS)
-  }
-
-  const beforeAnsweringCountdownInterval = setInterval(() => {
-    if (timeLeftToStartAnswering.value === 0) {
-      answeringCountdownInterval()
-      clearInterval(beforeAnsweringCountdownInterval)
-      stage.value = 'answering'
-      return
     }
-    container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
-  }, UPDATE_COUNTER_INTERVAL_MS)
 
+    container.quizService
+      .getPlayersCountPerAnswerInQuestionByQuestionId(
+        quiz.value!.questions[activeQuestion.value].id,
+      )
+      .then((currentAnswersPlayerCount) => {
+        answersPlayerCount.value = currentAnswersPlayerCount
+      })
+
+    stage.value = 'statistics'
+    clearInterval(interval)
+  })
+}
+
+const startBeforeAnsweringCountdown = () => {
+  const interval = setInterval(() => {
+    if (timeLeftToStartAnswering.value > 0) {
+      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
+    }
+
+    stage.value = 'answering'
+    startAnsweringCountdown()
+    clearInterval(interval)
+  }, UPDATE_COUNTER_INTERVAL_MS)
+}
+
+const handleNextQuestionClick = async () => {
+  activeQuestion.value++
+  container.quizService.sendQuestion(lobbyId, quiz.value!.questions[activeQuestion.value])
+  stage.value = 'before-answer'
+  timeLeftToStartAnswering.value = timeToStartAnswering || DEFAULT_TIMER_BEFORE_ANSWERING_IN_S
+  timeLeftToAnswer.value = timeToAnswer || DEFAULT_ANSWER_TIMER_IN_S
+  startBeforeAnsweringCountdown()
+}
+
+onMounted(async () => {
   container.quizService.startListeningForNewPlayers(lobbyId, (player) => {
     players.value.push(player)
   })
+  players.value = await container.quizService.getPlayersByLobby(lobbyId)
+  quiz.value = await container.quizService.getQuizWithQuestionsAndAnswersByQuizId(quizId)
 })
 </script>
 
@@ -96,12 +161,28 @@ onMounted(async () => {
     </div>
     <div v-else-if="stage === 'answering'" data-testid="answering-stage">
       <div data-testid="time-left">{{ timeLeftToAnswer }}</div>
-      <div data-testid="question-title">{{ quiz?.questions[0].title }}</div>
-      <img :src="quiz?.questions[0].image" data-testid="question-image" />
-      <div v-for="answer in quiz?.questions[0].answers" :key="answer.id" data-testid="answer">
+      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
+      <img :src="quiz?.questions[activeQuestion].image" data-testid="question-image" />
+      <div
+        v-for="answer in quiz?.questions[activeQuestion].answers"
+        :key="answer.id"
+        data-testid="answer"
+      >
         <div data-testid="answer-title">{{ answer.title }}</div>
       </div>
     </div>
-    <div v-else-if="stage === 'statistics'" data-testid="statistics-stage"></div>
+    <div v-else-if="stage === 'statistics'" data-testid="statistics-stage">
+      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
+      <div
+        v-for="answer in answerWithPlayerCount"
+        :key="answer.id"
+        data-testid="answer"
+        :data-is-correct="answer.isCorrect"
+      >
+        <div data-testid="title">{{ answer.title }}</div>
+        <div data-testid="player-count">{{ answer.playerCount }}</div>
+      </div>
+      <button data-testid="next-question" @click="handleNextQuestionClick">next question</button>
+    </div>
   </div>
 </template>

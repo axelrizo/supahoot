@@ -181,16 +181,15 @@ onMounted(async () => {
         >
           <div
             data-testid="answer-title"
-            :class="[
-              'w-full',
-              'text-3xl',
-              'h-full',
-              'p-4',
-              'rounded-lg',
-              ['bg-primary', 'bg-secondary text-black', 'bg-accent text-black', 'bg-info text-black'][
-                index % 4
-              ],
-            ]"
+            class="w-full text-3xl h-full p-4 rounded-lg"
+            :class="
+              [
+                'bg-primary',
+                'bg-secondary text-black',
+                'bg-accent text-black',
+                'bg-info text-black',
+              ][index % 4]
+            "
           >
             {{ answer.title }}
           </div>
@@ -228,9 +227,13 @@ onMounted(async () => {
             data-testid="answer-title"
             class="w-full text-3xl h-full p-4 rounded-lg flex items-center"
             :class="[
-              ['bg-primary', 'bg-secondary text-black', 'bg-accent text-black', 'bg-info text-black'][
-                index % 4
-              ],
+              [
+                'bg-primary',
+                'bg-secondary text-black',
+                'bg-accent text-black',
+                'bg-info text-black',
+              ][index % 4],
+              answer.isCorrect ? 'font-black border-white border-4' : '',
             ]"
           >
             <div data-testid="player-count" class="text-4xl font-bold pr-8 pl-2">

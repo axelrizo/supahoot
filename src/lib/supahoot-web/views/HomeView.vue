@@ -32,9 +32,9 @@ const handleSubmitForm = async () => {
 <template>
   <div class="flex items-center justify-center flex-col gap-10 h-screen">
     <p class="text-6xl">SupaHoot!</p>
-    <form class="flex flex-col gap-2" data-testid="join-lobby-form" @submit="handleSubmitForm">
+    <form class="flex flex-col gap-4" data-testid="join-lobby-form" @submit="handleSubmitForm">
       <input type="text" class="input" data-testid="join-lobby-input" v-model="lobbyId" />
-      <input type="submit" value="Join Lobby" class="btn btn-lg" />
+      <input type="submit" value="Join Lobby" class="btn btn-lg btn-primary" />
     </form>
   </div>
 </template>

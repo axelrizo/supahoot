@@ -26,6 +26,7 @@ const MockQuizService: MockService<QuizService> = {
   getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId: vi.fn(),
   listenUpdateAnsweringCountdown: vi.fn(),
   listenUpdateCountdownBeforeAnswer: vi.fn(),
+  getAwardsDashboard: vi.fn(),
 }
 
 const MockAvatarService: MockService<AvatarService> = {

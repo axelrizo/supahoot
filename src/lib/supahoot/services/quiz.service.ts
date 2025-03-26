@@ -93,4 +93,8 @@ export interface QuizService {
     lobbyId: number,
     questionId: number,
   ): Promise<{ answerId: number; playerCount: number }[]>
+  /**
+   * Get awards dashboard from the lobby
+   */
+  getAwardsDashboard(lobbyId: number): Promise<{ playerId: number; points: number }[]>
 }

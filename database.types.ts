@@ -206,6 +206,15 @@ export type Database = {
           player_count: number
         }[]
       }
+      get_awards: {
+        Args: {
+          lobby_id_input: number
+        }
+        Returns: {
+          player_id: number
+          total_points: number
+        }[]
+      }
       register_answer: {
         Args: {
           answer_id_input: number

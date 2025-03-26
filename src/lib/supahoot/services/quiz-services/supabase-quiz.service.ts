@@ -227,6 +227,16 @@ export class SupabaseQuizService implements QuizService {
     })
   }
 
+  async getAwardsDashboard(lobbyId: number): Promise<{ playerId: number; points: number }[]> {
+    const { data, error } = await this.supabase.rpc('get_awards', { lobby_id_input: lobbyId })
+
+    if (error) throw new Error(error.message)
+
+    return data.map(({ player_id, total_points }) => {
+      return { playerId: player_id, points: total_points }
+    })
+  }
+
   private initializeLobbyChannel(lobbyId: number) {
     if (this.channels[`lobby-${lobbyId}`]) {
       return this.channels[`lobby-${lobbyId}`]

@@ -1,6 +1,6 @@
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
-import type { Question, QuestionWithAnswers } from '@supahoot/quizzes/question'
+import type { QuestionWithAnswers } from '@supahoot/quizzes/question'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import type { PlayerAnswer } from '../quizzes/player-answer'
 
@@ -60,11 +60,16 @@ export interface QuizService {
   /**
    * Listen to the question
    */
-  listenQuestion(lobbyId: number, callback: (question: Question) => void): void
+  listenQuestion(lobbyId: number, callback: (question: QuestionWithAnswers) => void): void
   /**
    * Send the player answer
    */
-  sendAnswer(lobbyId: number, playerId: number, answerId: number): void
+  sendAnswer(
+    lobbyId: number,
+    playerId: number,
+    questionId: number,
+    answerId: number,
+  ): Promise<PlayerAnswer | null>
   /**
    * Listen to the player question points
    */

@@ -6,7 +6,7 @@ import type { Player } from '@supahoot/quizzes/player'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import { type Database } from '../../../../../database.types'
 import type { PlayerAnswer } from '../../quizzes/player-answer'
-import type { Question, QuestionWithAnswers } from '../../quizzes/question'
+import type { QuestionWithAnswers } from '../../quizzes/question'
 
 type Handler<TypePayload> = (payload: TypePayload) => void
 
@@ -15,7 +15,7 @@ interface EventListeners {
   startQuiz: Handler<void>[]
   updateCountdownBeforeAnswer: Handler<number>[]
   updateAnsweringCountdown: Handler<number>[]
-  listenQuestion: Handler<Question>[]
+  listenQuestion: Handler<QuestionWithAnswers>[]
   listenPlayerQuestionPoints: { playerId: number; callback: Handler<PlayerAnswer> }[]
 }
 
@@ -119,19 +119,32 @@ export class SupabaseQuizService implements QuizService {
     this.eventListeners.startQuiz.push(callback)
   }
 
-  listenQuestion(lobbyId: number, callback: (question: Question) => void): void {
+  listenQuestion(lobbyId: number, callback: (question: QuestionWithAnswers) => void): void {
     this.initializeLobbyChannel(lobbyId)
     this.eventListeners.listenQuestion.push(callback)
   }
 
-  sendAnswer(lobbyId: number, playerId: number, answerId: number) {
-    const channel = this.initializeLobbyChannel(lobbyId)
-
-    channel.send({
-      type: 'broadcast',
-      event: 'send_answer',
-      payload: { answer_id: answerId, player_id: playerId },
+  async sendAnswer(lobbyId: number, playerId: number, questionId: number, answerId: number) {
+    const { error, data } = await this.supabase.rpc('register_answer', {
+      lobby_id_input: lobbyId,
+      player_id_input: playerId,
+      question_id_input: questionId,
+      answer_id_input: answerId,
     })
+
+    if (error) throw new Error(error.message)
+
+    if (data.length === 0) return null
+
+    return data.map(({ answer_id, created_at, id, player_id, points }) => {
+      return {
+        answerId: answer_id,
+        createdAt: created_at,
+        id,
+        playerId: player_id,
+        points,
+      }
+    })[0] as PlayerAnswer
   }
 
   listenPlayerQuestionPoints(
@@ -270,6 +283,12 @@ export class SupabaseQuizService implements QuizService {
       .on<{ count: number }>('broadcast', { event: 'update_answering_countdown' }, (payload) => {
         this.eventListeners.updateAnsweringCountdown.forEach((listener) => {
           listener(payload.payload.count)
+        })
+      })
+      .on('broadcast', { event: 'send_question' }, (payload) => {
+        console.log('🚀 ~ payload:', payload)
+        this.eventListeners.listenQuestion.forEach((listener) => {
+          listener(payload.payload)
         })
       })
       .subscribe()

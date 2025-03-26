@@ -27,7 +27,6 @@ const quizId = parseInt(route.params.quizId as string)
 
 const lobbyHref = router.resolve({ name: 'player-lobby' }).href
 const lobbyLink = new URL(location.origin + "/supahoot/" + lobbyHref).toString()
-console.log(lobbyLink);
 
 const stage = ref<'lobby' | 'before-answer' | 'answering' | 'statistics'>('lobby')
 const players = ref<Player[]>([])

@@ -1,4 +1,4 @@
-import MockComponent from '@/test/support/MockComponent.vue'
+import AdminAwardsView from '@supahoot-web/views/AdminAwardsView.vue'
 import AdminLobby from '@supahoot-web/views/AdminLobby.vue'
 import AdminView from '@supahoot-web/views/AdminView.vue'
 import HomeView from '@supahoot-web/views/HomeView.vue'
@@ -16,7 +16,7 @@ const router = createRouter({
     {
       path: '/admin/quiz/:quizId/lobby/:lobbyId/awards',
       name: 'admin-awards',
-      component: MockComponent,
+      component: AdminAwardsView,
     },
     { path: '/', name: 'home', component: HomeView },
     {

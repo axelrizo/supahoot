@@ -1,7 +1,7 @@
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
-import type { Question } from '@supahoot/quizzes/question'
-import type { Quiz } from '@supahoot/quizzes/quiz'
+import type { Question, QuestionWithAnswers } from '@supahoot/quizzes/question'
+import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import type { PlayerAnswer } from '../quizzes/player-answer'
 
 export interface QuizService {
@@ -38,17 +38,21 @@ export interface QuizService {
    */
   getQuizByLobbyId(lobbyId: number): Promise<Quiz>
   /**
-   * Get the question by the quiz id and the question order
+   * Update the countdown before the question start
    */
-  getQuestionByQuizIdAndQuestionOrder(quizId: number, questionOrder: number): Promise<Question>
+  updateCountdownBeforeAnswer(lobbyId: number, count: number): void
   /**
-   * Listen to the countdown
+   * Listen countdown before the question start
    */
-  listenCountdown(lobbyId: number, callback: (count: number) => void): void
+  listenUpdateCountdownBeforeAnswer(lobbyId: number, callback: (count: number) => void): void
   /**
-   * Update the countdown
+   * Update the countdown to start answering the question
    */
-  updateCountdown(lobbyId: number, count: number): void
+  updateAnsweringCountdown(lobbyId: number, count: number): void
+  /**
+   * Listen countdown to start answering the question
+   */
+  listenUpdateAnsweringCountdown(lobbyId: number, callback: (count: number) => void): void
   /**
    * Listen to the quiz start
    */
@@ -69,4 +73,19 @@ export interface QuizService {
     playerId: number,
     callback: (points: PlayerAnswer) => void,
   ): void
+  /**
+   * Send the question to the players
+   */
+  sendQuestion(lobbyId: number, question: QuestionWithAnswers): void
+  /**
+   * Get quiz details by the quiz id
+   */
+  getQuizWithQuestionsAndAnswersByQuizId(quizId: number): Promise<QuizWithQuestionsWithAnswers>
+  /**
+   * Get total players that chose that answer
+   */
+  getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId(
+    lobbyId: number,
+    questionId: number,
+  ): Promise<{ answerId: number; playerCount: number }[]>
 }

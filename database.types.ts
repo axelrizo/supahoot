@@ -96,6 +96,45 @@ export type Database = {
           },
         ]
       }
+      players_answers: {
+        Row: {
+          answer_id: number
+          created_at: string
+          id: number
+          player_id: number
+          points: number
+        }
+        Insert: {
+          answer_id: number
+          created_at?: string
+          id?: number
+          player_id: number
+          points: number
+        }
+        Update: {
+          answer_id?: number
+          created_at?: string
+          id?: number
+          player_id?: number
+          points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'players_answers_answer_id_fkey'
+            columns: ['answer_id']
+            isOneToOne: false
+            referencedRelation: 'answers'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'players_answers_player_id_fkey'
+            columns: ['player_id']
+            isOneToOne: false
+            referencedRelation: 'players'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       questions: {
         Row: {
           created_at: string
@@ -157,7 +196,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_answer_counts: {
+        Args: {
+          lobby_id_input: number
+          question_id_input: number
+        }
+        Returns: {
+          answer_id: number
+          player_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

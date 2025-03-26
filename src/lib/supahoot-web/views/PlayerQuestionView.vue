@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import type { Answer } from '@/lib/supahoot/quizzes/answer'
 import type { PlayerAnswer } from '@/lib/supahoot/quizzes/player-answer'
 import type { Question } from '@/lib/supahoot/quizzes/question'
@@ -37,7 +37,7 @@ const restartState = () => {
 }
 
 onMounted(() => {
-  container.quizService.listenCountdown(lobbyId, (timeLeft) => {
+  container.quizService.listenCountdownBeforeQuestionStart(lobbyId, (timeLeft) => {
     restartState()
     countdown.value = timeLeft
   })
@@ -78,4 +78,4 @@ onMounted(() => {
       <img data-testid="image" :src="player.image" />
     </div>
   </div>
-</template>
+</template> -->

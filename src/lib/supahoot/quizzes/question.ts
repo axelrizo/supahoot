@@ -5,5 +5,8 @@ export interface Question {
   title: string
   order: number
   image: string
+}
+
+export type QuestionWithAnswers = Question & {
   answers: Answer[]
 }

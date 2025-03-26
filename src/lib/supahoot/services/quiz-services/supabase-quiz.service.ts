@@ -3,17 +3,18 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
-import type { Quiz } from '@supahoot/quizzes/quiz'
-import { type Database } from '../../../../../database.types'
+import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
+import { type Database, type Tables } from '../../../../../database.types'
 import type { PlayerAnswer } from '../../quizzes/player-answer'
-import type { Question } from '../../quizzes/question'
+import type { Question, QuestionWithAnswers } from '../../quizzes/question'
 
 type Handler<TypePayload> = (payload: TypePayload) => void
 
 interface EventListeners {
   listenForNewPlayers: Handler<Player>[]
   startQuiz: Handler<void>[]
-  updateCountdownBeforeQuestionStart: Handler<number>[]
+  updateCountdownBeforeAnswer: Handler<number>[]
+  updateAnsweringCountdown: Handler<number>[]
   listenQuestion: Handler<Question>[]
   listenPlayerQuestionPoints: { playerId: number; callback: Handler<PlayerAnswer> }[]
 }
@@ -29,7 +30,8 @@ export class SupabaseQuizService implements QuizService {
   private eventListeners: EventListeners = {
     listenForNewPlayers: [],
     startQuiz: [],
-    updateCountdownBeforeQuestionStart: [],
+    updateCountdownBeforeAnswer: [],
+    updateAnsweringCountdown: [],
     listenQuestion: [],
     listenPlayerQuestionPoints: [],
   }
@@ -113,50 +115,13 @@ export class SupabaseQuizService implements QuizService {
     return data[0].quizzes as Quiz
   }
 
-  async getQuestionByQuizIdAndQuestionOrder(
-    quizId: number,
-    questionOrder: number,
-  ): Promise<Question> {
-    const { error, data } = await this.supabase
-      .from('questions')
-      .select('*, answers(*)')
-      .eq('"order"', questionOrder)
-      .eq('quiz_id', quizId)
-
-    if (error) throw new Error(error.message)
-
-    return data[0] as Question
-  }
-
-  updateCountdownBeforeQuestionStart(lobbyId: number, count: number): void {
-    const channel = this.initializeLobbyChannel(lobbyId)
-
-    channel.send({
-      type: 'broadcast',
-      event: 'update_countdown_before_question_start',
-      payload: { count },
-    })
-  }
-
-  updateStartAnswerQuestionCountdown(lobbyId: number, count: number): void {
-    const channel = this.initializeLobbyChannel(lobbyId)
-
-    channel.send({
-      type: 'broadcast',
-      event: 'update_start_answer_question_countdown',
-      payload: { count },
-    })
-  }
-
   listenQuizStart(lobbyId: number, callback: () => void): void {
     this.initializeLobbyChannel(lobbyId)
-
     this.eventListeners.startQuiz.push(callback)
   }
 
   listenQuestion(lobbyId: number, callback: (question: Question) => void): void {
     this.initializeLobbyChannel(lobbyId)
-
     this.eventListeners.listenQuestion.push(callback)
   }
 
@@ -176,8 +141,79 @@ export class SupabaseQuizService implements QuizService {
     callback: (points: PlayerAnswer) => void,
   ): void {
     this.initializeLobbyChannel(lobbyId)
-
     this.eventListeners.listenPlayerQuestionPoints.push({ playerId, callback })
+  }
+
+  updateCountdownBeforeAnswer(lobbyId: number, count: number): void {
+    this.initializeLobbyChannel(lobbyId).send({
+      type: 'broadcast',
+      event: 'update_countdown_before_answer',
+      payload: { count },
+    })
+  }
+
+  listenUpdateCountdownBeforeAnswer(lobbyId: number, callback: (count: number) => void): void {
+    this.initializeLobbyChannel(lobbyId)
+    this.eventListeners.updateCountdownBeforeAnswer.push(callback)
+  }
+
+  updateAnsweringCountdown(lobbyId: number, count: number): void {
+    this.initializeLobbyChannel(lobbyId).send({
+      type: 'broadcast',
+      event: 'update_answering_countdown',
+      payload: { count },
+    })
+  }
+
+  listenUpdateAnsweringCountdown(lobbyId: number, callback: (count: number) => void): void {
+    this.initializeLobbyChannel(lobbyId)
+    this.eventListeners.updateAnsweringCountdown.push(callback)
+  }
+
+  sendQuestion(lobbyId: number, question: QuestionWithAnswers): void {
+    this.initializeLobbyChannel(lobbyId).send({
+      type: 'broadcast',
+      event: 'send_question',
+      payload: question,
+    })
+  }
+
+  async getQuizWithQuestionsAndAnswersByQuizId(
+    quizId: number,
+  ): Promise<QuizWithQuestionsWithAnswers> {
+    const { data, error } = await this.supabase
+      .from('quizzes')
+      .select(
+        `
+        *,
+        questions (
+          *,
+          answers (*, isCorrect:is_correct)
+        )
+      `,
+      )
+      .eq('id', quizId)
+
+    if (error) throw new Error(error.message)
+    console.log(data[0].questions[0].answers)
+
+    return data[0] as QuizWithQuestionsWithAnswers
+  }
+
+  async getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId(
+    lobbyId: number,
+    questionId: number,
+  ) {
+    const { data, error } = await this.supabase.rpc('get_answer_counts', {
+      lobby_id_input: lobbyId,
+      question_id_input: questionId,
+    })
+
+    if (error) throw new Error(error.message)
+
+    return data.map(({ answer_id, player_count }) => {
+      return { answerId: answer_id, playerCount: player_count }
+    })
   }
 
   private initializeLobbyChannel(lobbyId: number) {
@@ -226,13 +262,18 @@ export class SupabaseQuizService implements QuizService {
       })
       .on<{ count: number }>(
         'broadcast',
-        { event: 'update_countdown_before_question_start' },
+        { event: 'update_countdown_before_answer' },
         (payload) => {
-          this.eventListeners.updateCountdownBeforeQuestionStart.forEach((listener) => {
+          this.eventListeners.updateCountdownBeforeAnswer.forEach((listener) => {
             listener(payload.payload.count)
           })
         },
       )
+      .on<{ count: number }>('broadcast', { event: 'update_answering_countdown' }, (payload) => {
+        this.eventListeners.updateAnsweringCountdown.forEach((listener) => {
+          listener(payload.payload.count)
+        })
+      })
       .subscribe()
 
     this.channels[`lobby-${lobbyId}`] = channel

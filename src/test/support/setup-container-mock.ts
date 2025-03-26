@@ -23,7 +23,7 @@ const MockQuizService: MockService<QuizService> = {
   listenPlayerQuestionPoints: vi.fn(),
   sendQuestion: vi.fn(),
   getQuizWithQuestionsAndAnswersByQuizId: vi.fn(),
-  getPlayersCountPerAnswerInQuestionByQuestionId: vi.fn(),
+  getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId: vi.fn(),
   listenUpdateAnsweringCountdown: vi.fn(),
   listenUpdateCountdownBeforeAnswer: vi.fn(),
 }

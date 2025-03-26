@@ -123,18 +123,18 @@ onMounted(async () => {
 <template>
   <div class="p-4">
     <div v-if="stage === 'lobby'" data-testid="lobby-stage">
-      <div class="flex items-center">
+      <div class="flex items-center justify-between">
         <div data-testid="lobby-id" class="text-4xl p-2 font-bold">Lobby ID: {{ lobbyId }}</div>
         <button
           class="btn btn-primary btn-xl"
           data-testid="initialize-quiz"
           @click="handleInitializeQuizButtonClick"
         >
-          initialize quiz
+          Initialize quiz
         </button>
       </div>
       <div class="grid grid-cols-2 gap-4 p-4 items-center justify-items-center">
-        <QrcodeVue :value="lobbyLink" size="500" data-testid="qr-code" />
+        <QrcodeVue :value="lobbyLink" :size="500" data-testid="qr-code" />
         <div class="container">
           <div
             data-testid="player"
@@ -148,48 +148,95 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
-      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
-      <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
+    <div
+      v-else-if="stage === 'before-answer'"
+      data-testid="before-answer-stage"
+      class="flex justify-center items-center flex-col h-screen gap-4"
+    >
+      <div data-testid="question-title" class="text-6xl p-2">
+        {{ quiz?.questions[activeQuestion].title }}
+      </div>
+      <div data-testid="time-left" class="text-4xl p-2">
+        Time left: {{ timeLeftToStartAnswering }}
+      </div>
     </div>
-    <div v-else-if="stage === 'answering'" data-testid="answering-stage">
-      <div data-testid="time-left">{{ timeLeftToAnswer }}</div>
-      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
-      <img :src="quiz?.questions[activeQuestion].image" data-testid="question-image" />
-      <div
-        v-for="answer in quiz?.questions[activeQuestion].answers"
-        :key="answer.id"
-        data-testid="answer"
-      >
-        <div data-testid="answer-title">{{ answer.title }}</div>
+    <div
+      v-else-if="stage === 'answering'"
+      data-testid="answering-stage"
+      class="flex justify-center items-center flex-col h-screen gap-4"
+    >
+      <div data-testid="question-title" class="text-6xl p-2">
+        {{ quiz?.questions[activeQuestion].title }}
+      </div>
+      <div data-testid="time-left" class="text-4xl p-2">Time left: {{ timeLeftToAnswer }}</div>
+      <div class="grid grid-cols-2 gap-4">
+        <div
+          v-for="(answer, index) in quiz?.questions[activeQuestion].answers"
+          :key="answer.id"
+          data-testid="answer"
+        >
+          <div
+            data-testid="answer-title"
+            :class="[
+              'w-full',
+              'text-3xl',
+              'h-full',
+              'p-4',
+              'rounded-lg',
+              ['bg-primary', 'bg-secondary text-black', 'bg-accent', 'bg-info text-black'][
+                index % 4
+              ],
+            ]"
+          >
+            {{ answer.title }}
+          </div>
+        </div>
       </div>
     </div>
     <div v-else-if="stage === 'statistics'" data-testid="statistics-stage">
-      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
-      <div
-        v-for="answer in answerWithPlayerCount"
-        :key="answer.id"
-        data-testid="answer"
-        :data-is-correct="answer.isCorrect"
-      >
-        <div data-testid="title">{{ answer.title }}</div>
-        <div data-testid="player-count">{{ answer.playerCount || 0 }}</div>
+      <div data-testid="question-title" class="flex gap-8 justify-between items-center pb-16">
+        <div class="text-3xl">{{ quiz?.questions[activeQuestion].title }}</div>
+        <button
+          v-if="showNextQuestionButton"
+          data-testid="next-question"
+          @click="handleNextQuestionClick"
+          class="btn btn-primary btn-xl"
+        >
+          Next question
+        </button>
+        <RouterLink
+          v-else
+          data-testid="awards-button"
+          @click="handleNextQuestionClick"
+          class="btn btn-primary btn-xl"
+          :to="{ name: 'admin-awards', params: { quizId, lobbyId } }"
+        >
+          Awards
+        </RouterLink>
       </div>
-      <button
-        v-if="showNextQuestionButton"
-        data-testid="next-question"
-        @click="handleNextQuestionClick"
-      >
-        next question
-      </button>
-      <RouterLink
-        v-else
-        data-testid="awards-button"
-        @click="handleNextQuestionClick"
-        :to="{ name: 'admin-awards', params: { quizId, lobbyId } }"
-      >
-        awards
-      </RouterLink>
+      <div class="grid grid-cols-2 gap-4">
+        <div
+          v-for="(answer, index) in answerWithPlayerCount"
+          :key="answer.id"
+          data-testid="answer"
+          :data-is-correct="answer.isCorrect"
+        >
+          <div
+            data-testid="answer-title"
+            class="w-full text-3xl h-full p-4 rounded-lg flex items-center"
+            :class="[
+              ['bg-primary', 'bg-secondary text-black', 'bg-accent', 'bg-info text-black'][
+                index % 4
+              ],
+            ]"
+          >
+            <div data-testid="player-count" class="text-4xl font-bold pr-8 pl-2">
+              {{ answer.playerCount || 0 }}
+            </div>
+            {{ answer.title }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

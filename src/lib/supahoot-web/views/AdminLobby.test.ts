@@ -373,18 +373,6 @@ describe('AdminLobby answering stage', () => {
     expect($questionTitle.text()).toContain(quizWithThreeQuestions.questions[0].title)
   })
 
-  test('success: show question image', async () => {
-    container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
-      quizWithThreeQuestions,
-    )
-    const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
-    await clickInitializeQuiz(wrapper)
-    await finishTimeBeforeAnswer()
-
-    const $questionImage = wrapper.get(`${ANSWERING_STAGE} ${testId('question-image')}`)
-    expect($questionImage.attributes('src')).toBe(quizWithThreeQuestions.questions[0].image)
-  })
-
   test('success: show questions answers', async () => {
     container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
       quizWithThreeQuestions,

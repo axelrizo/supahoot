@@ -233,7 +233,7 @@ export class SupabaseQuizService implements QuizService {
     if (error) throw new Error(error.message)
 
     return data.map((player) => {
-      return { ...player, points: player.total_points }
+      return { ...player, points: player.total_points, image: this.getPlayerAvatarUrl(player) }
     })
   }
 

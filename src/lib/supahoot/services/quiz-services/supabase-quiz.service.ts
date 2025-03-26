@@ -70,7 +70,6 @@ export class SupabaseQuizService implements QuizService {
 
   async stopListeningForNewPlayers(lobbyId: number) {
     this.initializeLobbyChannel(lobbyId)
-
     this.eventListeners.listenForNewPlayers = []
   }
 
@@ -245,7 +244,7 @@ export class SupabaseQuizService implements QuizService {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'player_answers',
+          table: 'players_answers',
         },
         (payload) => {
           this.eventListeners.listenPlayerQuestionPoints.forEach(({ playerId, callback }) => {

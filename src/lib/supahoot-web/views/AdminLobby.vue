@@ -61,7 +61,8 @@ const startAnsweringCountdown = () => {
       stage.value = 'statistics'
 
       container.quizService
-        .getPlayersCountPerAnswerInQuestionByQuestionId(
+        .getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId(
+          lobbyId,
           quiz.value!.questions[activeQuestion.value].id,
         )
         .then((currentAnswersPlayerCount) => {

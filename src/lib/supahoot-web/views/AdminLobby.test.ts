@@ -401,7 +401,9 @@ describe('AdminLobby answering stage', () => {
     container.quizService.getQuizWithQuestionsAndAnswersByQuizId.mockResolvedValue(
       quizWithThreeQuestions,
     )
-    container.quizService.getPlayersCountPerAnswerInQuestionByQuestionId.mockResolvedValue(null)
+    container.quizService.getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId.mockResolvedValue(
+      null,
+    )
 
     const wrapper = mount(AdminLobby, { props: { timeToStartAnswering: 1, timeToAnswer: 20 } })
     await clickInitializeQuiz(wrapper)
@@ -424,7 +426,7 @@ describe('AdminLobby statistics stage', () => {
       quizWithThreeQuestions,
     )
 
-    container.quizService.getPlayersCountPerAnswerInQuestionByQuestionId.mockResolvedValue(
+    container.quizService.getPlayerCountPerAnswerInQuestionByLobbyIdAndQuestionId.mockResolvedValue(
       answerPlayerCountMap,
     )
   })

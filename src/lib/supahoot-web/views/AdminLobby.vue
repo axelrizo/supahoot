@@ -68,6 +68,8 @@ const startAnsweringCountdown = () => {
         .then((currentAnswersPlayerCount) => {
           answersPlayerCount.value = currentAnswersPlayerCount
         })
+
+      container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
       return
     }
 
@@ -81,6 +83,8 @@ const startBeforeAnsweringCountdown = () => {
       startAnsweringCountdown()
       clearInterval(interval)
       stage.value = 'answering'
+
+      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
       return
     }
 

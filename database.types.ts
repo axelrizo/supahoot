@@ -206,6 +206,21 @@ export type Database = {
           player_count: number
         }[]
       }
+      register_answer: {
+        Args: {
+          answer_id_input: number
+          lobby_id_input: number
+          question_id_input: number
+          player_id_input: number
+        }
+        Returns: {
+          answer_id: number
+          created_at: string
+          id: number
+          player_id: number
+          points: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

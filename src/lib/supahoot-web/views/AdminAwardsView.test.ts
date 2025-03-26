@@ -15,8 +15,8 @@ beforeEach(() => {
 })
 
 const awardsDashboard: PlayerWithPoints[] = [
-  { id: 1, username: 'User1', image:"image1", points: 10 },
-  { id: 2, username: 'User2', image:"image2", points: 20 },
+  { id: 1, username: 'User1', image: 'image1', points: 10 },
+  { id: 2, username: 'User2', image: 'image2', points: 20 },
 ]
 
 const copy = JSON.parse(JSON.stringify(awardsDashboard)) as PlayerWithPoints[]
@@ -37,11 +37,9 @@ describe('AdminAwardsView', () => {
     const $places = wrapper.findAll(HTMLUtils.testId('place'))
 
     expect($places.length).toBe(awardsDashboard.length)
-
-
   })
 
-  test('success: show places the awards dashboard', async ()=> {
+  test('success: show places the awards dashboard', async () => {
     container.quizService.getAwardsDashboard.mockResolvedValue(awardsDashboard)
     const wrapper = mount(AdminAwardsView)
     await flushPromises()

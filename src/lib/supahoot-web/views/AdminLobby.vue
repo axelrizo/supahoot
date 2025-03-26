@@ -139,12 +139,12 @@ onMounted(async () => {
       </div>
       <div class="grid grid-cols-2 gap-4 p-4 items-center justify-items-center">
         <QrcodeVue :value="lobbyLink" :size="500" data-testid="qr-code" />
-        <div class="container">
+        <div class="container gap-4">
           <div
             data-testid="player"
             v-for="player in players"
             :key="player.id"
-            class="flex items-center flex-col"
+            class="flex items-center flex-col justify-between"
           >
             <img data-testid="avatar" class="w-15" :src="player.image" />
             <p data-testid="username">{{ player.username }}</p>
@@ -187,7 +187,7 @@ onMounted(async () => {
               'h-full',
               'p-4',
               'rounded-lg',
-              ['bg-primary', 'bg-secondary text-black', 'bg-accent', 'bg-info text-black'][
+              ['bg-primary', 'bg-secondary text-black', 'bg-accent text-black', 'bg-info text-black'][
                 index % 4
               ],
             ]"
@@ -211,7 +211,6 @@ onMounted(async () => {
         <RouterLink
           v-else
           data-testid="awards-button"
-          @click="handleNextQuestionClick"
           class="btn btn-primary btn-xl"
           :to="{ name: 'admin-awards', params: { quizId, lobbyId } }"
         >
@@ -229,7 +228,7 @@ onMounted(async () => {
             data-testid="answer-title"
             class="w-full text-3xl h-full p-4 rounded-lg flex items-center"
             :class="[
-              ['bg-primary', 'bg-secondary text-black', 'bg-accent', 'bg-info text-black'][
+              ['bg-primary', 'bg-secondary text-black', 'bg-accent text-black', 'bg-info text-black'][
                 index % 4
               ],
             ]"

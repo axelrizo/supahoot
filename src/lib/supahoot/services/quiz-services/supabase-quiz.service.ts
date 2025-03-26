@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { Lobby } from '@supahoot/quizzes/lobby'
 import type { Player } from '@supahoot/quizzes/player'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
-import { type Database, type Tables } from '../../../../../database.types'
+import { type Database } from '../../../../../database.types'
 import type { PlayerAnswer } from '../../quizzes/player-answer'
 import type { Question, QuestionWithAnswers } from '../../quizzes/question'
 
@@ -195,7 +195,6 @@ export class SupabaseQuizService implements QuizService {
       .eq('id', quizId)
 
     if (error) throw new Error(error.message)
-    console.log(data[0].questions[0].answers)
 
     return data[0] as QuizWithQuestionsWithAnswers
   }

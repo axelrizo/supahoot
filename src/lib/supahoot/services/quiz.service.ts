@@ -38,17 +38,13 @@ export interface QuizService {
    */
   getQuizByLobbyId(lobbyId: number): Promise<Quiz>
   /**
-   * Get the question by the quiz id and the question order
-   */
-  getQuestionByQuizIdAndQuestionOrder(quizId: number, questionOrder: number): Promise<Question>
-  /**
    * Update the countdown before the question start
    */
   updateCountdownBeforeAnswer(lobbyId: number, count: number): void
   /**
    * Listen countdown before the question start
    */
-  listenCountdownBeforeQuestionStart(lobbyId: number, callback: (count: number) => void): void
+  listenUpdateCountdownBeforeAnswer(lobbyId: number, callback: (count: number) => void): void
   /**
    * Update the countdown to start answering the question
    */
@@ -56,7 +52,7 @@ export interface QuizService {
   /**
    * Listen countdown to start answering the question
    */
-  listenStartAnswerQuestionCountdown(lobbyId: number, callback: (count: number) => void): void
+  listenUpdateAnsweringCountdown(lobbyId: number, callback: (count: number) => void): void
   /**
    * Listen to the quiz start
    */
@@ -88,5 +84,7 @@ export interface QuizService {
   /**
    * Get total players that chose that answer
    */
-  getPlayersCountPerAnswerInQuestionByQuestionId(answerId: number): Promise<{ answerId: number, playerCount: number }[]>
+  getPlayersCountPerAnswerInQuestionByQuestionId(
+    answerId: number,
+  ): Promise<{ answerId: number; playerCount: number }[]>
 }

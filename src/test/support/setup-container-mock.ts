@@ -15,11 +15,8 @@ const MockQuizService: MockService<QuizService> = {
   createPlayerByLobbyId: vi.fn(),
   startQuiz: vi.fn(),
   getQuizByLobbyId: vi.fn(),
-  getQuestionByQuizIdAndQuestionOrder: vi.fn(),
   updateCountdownBeforeAnswer: vi.fn(),
-  listenCountdownBeforeQuestionStart: vi.fn(),
   updateAnsweringCountdown: vi.fn(),
-  listenStartAnswerQuestionCountdown: vi.fn(),
   listenQuizStart: vi.fn(),
   listenQuestion: vi.fn(),
   sendAnswer: vi.fn(),
@@ -27,6 +24,8 @@ const MockQuizService: MockService<QuizService> = {
   sendQuestion: vi.fn(),
   getQuizWithQuestionsAndAnswersByQuizId: vi.fn(),
   getPlayersCountPerAnswerInQuestionByQuestionId: vi.fn(),
+  listenUpdateAnsweringCountdown: vi.fn(),
+  listenUpdateCountdownBeforeAnswer: vi.fn(),
 }
 
 const MockAvatarService: MockService<AvatarService> = {

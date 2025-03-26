@@ -561,8 +561,8 @@ describe('AdminLobby statistics stage', () => {
 
     await finishTimeBeforeAnswer()
     await finishAnsweringTime()
-    expect(container.quizService.updateCountdownBeforeAnswer).toHaveBeenCalledTimes(2)
-    expect(container.quizService.updateAnsweringCountdown).toHaveBeenCalledTimes(2)
+    expect(container.quizService.updateCountdownBeforeAnswer).toHaveBeenCalledTimes(4)
+    expect(container.quizService.updateAnsweringCountdown).toHaveBeenCalledTimes(4)
   })
 
   test('success: show before question stage when click next question', async () => {

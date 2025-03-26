@@ -1,5 +1,5 @@
 import type { Lobby } from '@supahoot/quizzes/lobby'
-import type { Player } from '@supahoot/quizzes/player'
+import type { Player, PlayerWithPoints } from '@supahoot/quizzes/player'
 import type { QuestionWithAnswers } from '@supahoot/quizzes/question'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import type { PlayerAnswer } from '../quizzes/player-answer'
@@ -93,4 +93,8 @@ export interface QuizService {
     lobbyId: number,
     questionId: number,
   ): Promise<{ answerId: number; playerCount: number }[]>
+  /**
+   * Get awards dashboard from the lobby
+   */
+  getAwardsDashboard(lobbyId: number): Promise<PlayerWithPoints[]>
 }

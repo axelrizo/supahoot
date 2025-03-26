@@ -3,3 +3,5 @@ export interface Player {
   username: string
   image: string
 }
+
+export type PlayerWithPoints = Player & { points: number }

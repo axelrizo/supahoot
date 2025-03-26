@@ -2,7 +2,7 @@ import type { QuizService } from '@/lib/supahoot/services/quiz.service'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import type { Lobby } from '@supahoot/quizzes/lobby'
-import type { Player } from '@supahoot/quizzes/player'
+import type { Player, PlayerWithPoints } from '@supahoot/quizzes/player'
 import type { Quiz, QuizWithQuestionsWithAnswers } from '@supahoot/quizzes/quiz'
 import { type Database } from '../../../../../database.types'
 import type { PlayerAnswer } from '../../quizzes/player-answer'
@@ -224,6 +224,16 @@ export class SupabaseQuizService implements QuizService {
 
     return data.map(({ answer_id, player_count }) => {
       return { answerId: answer_id, playerCount: player_count }
+    })
+  }
+
+  async getAwardsDashboard(lobbyId: number): Promise<PlayerWithPoints[]> {
+    const { data, error } = await this.supabase.rpc('get_awards', { lobby_id_input: lobbyId })
+
+    if (error) throw new Error(error.message)
+
+    return data.map((player) => {
+      return { ...player, points: player.total_points, image: this.getPlayerAvatarUrl(player) }
     })
   }
 

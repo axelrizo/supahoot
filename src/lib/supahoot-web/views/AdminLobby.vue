@@ -68,6 +68,8 @@ const startAnsweringCountdown = () => {
         .then((currentAnswersPlayerCount) => {
           answersPlayerCount.value = currentAnswersPlayerCount
         })
+
+      container.quizService.updateAnsweringCountdown(lobbyId, timeLeftToAnswer.value--)
       return
     }
 
@@ -81,6 +83,8 @@ const startBeforeAnsweringCountdown = () => {
       startAnsweringCountdown()
       clearInterval(interval)
       stage.value = 'answering'
+
+      container.quizService.updateCountdownBeforeAnswer(lobbyId, timeLeftToStartAnswering.value--)
       return
     }
 
@@ -124,14 +128,15 @@ onMounted(async () => {
   <div>
     <div v-if="stage === 'lobby'" data-testid="lobby-stage">
       <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
-      <div data-testid="player" v-for="player in players" :key="player.id">
-        <p data-testid="username">{{ player.username }}</p>
-        <img data-testid="avatar" :src="player.image" />
-      </div>
       <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
+      <p>{{ lobbyLink }}</p>
       <button data-testid="initialize-quiz" @click="handleInitializeQuizButtonClick">
         initialize quiz
       </button>
+      <div data-testid="player" v-for="player in players" :key="player.id">
+        <p data-testid="username">{{ player.username }}</p>
+        <img data-testid="avatar" :src="player.image" width="20" />
+      </div>
     </div>
     <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
       <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>

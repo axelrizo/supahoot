@@ -1,125 +1,278 @@
-// import { container, playerProvider } from '@/test/support/setup-container-mock'
-// import { HTMLUtils } from '@/test/support/utils/html-utils'
-// import { type PlayerAnswer } from '@supahoot/quizzes/player-answer'
-// import type { QuestionWithAnswers } from '@supahoot/quizzes/question'
-// import { mount, type VueWrapper } from '@vue/test-utils'
-// import { getRouter, type RouterMock } from 'vue-router-mock'
-// import PlayerQuestionView from './PlayerQuestionView.vue'
+import type { Player } from '@/lib/supahoot/quizzes/player'
+import type { PlayerAnswer } from '@/lib/supahoot/quizzes/player-answer'
+import type { QuestionWithAnswers } from '@/lib/supahoot/quizzes/question'
+import { container, playerProvider } from '@/test/support/setup-container-mock'
+import { HTMLUtils } from '@/test/support/utils/html-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { getRouter, type RouterMock } from 'vue-router-mock'
+import PlayerQuizView from './PlayerQuizView.vue'
 
-// let wrapper: VueWrapper
-// let router: RouterMock
+const PLAYER_SECTION = HTMLUtils.testId('player-section')
+const BEFORE_ANSWER_STAGE = HTMLUtils.testId('before-answer-stage')
+const ANSWERING_STAGE = HTMLUtils.testId('answering-stage')
+const PLAYER_POINTS_STAGE = HTMLUtils.testId('player-points-stage')
 
-// beforeEach(() => {
-//   router = getRouter()
-//   router.setParams({ quizId: '1', questionOrder: '3', lobbyId: '2' })
-// })
+const pageParams = { quizId: 10, lobbyId: 20 }
+const playerProfile: Player = { id: 1, image: '/image', username: 'Username' }
 
-// describe('PlayerQuestionView', () => {
-//   beforeEach(() => {
-//     container.quizService.listenUpdateCountdownBeforeAnswer.mockImplementation(
-//       (_lobbyId: number, callback: (count: number) => void) => {
-//         callback(15)
-//       },
-//     )
+const question: QuestionWithAnswers = {
+  id: 30,
+  order: 1,
+  image: '/image',
+  title: 'Title',
+  answers: [
+    { id: 40, title: 'Answer 1', isCorrect: true, order: 1 },
+    { id: 50, title: 'Answer 2', isCorrect: false, order: 2 },
+    { id: 60, title: 'Answer 3', isCorrect: false, order: 3 },
+    { id: 70, title: 'Answer 4', isCorrect: false, order: 4 },
+  ],
+}
 
-//     playerProvider.player = { id: 1, username: 'Player 1', image: '/image' }
+const playerAnswer: PlayerAnswer = {
+  id: 1,
+  playerId: 1,
+  answerId: 1,
+  points: 100,
+}
 
-//     wrapper = mount(PlayerQuestionView)
-//   })
+let router: RouterMock
 
-//   test('success: display the countdown', () => {
-//     expect(wrapper.get(HTMLUtils.testId('time-left')).text()).toContain('15')
-//   })
+beforeEach(() => {
+  router = getRouter()
+  router.setParams(pageParams)
 
-//   test('success: not display the button to answer the question', () => {
-//     expect(wrapper.findAll(HTMLUtils.testId('answer-button'))).toHaveLength(0)
-//   })
+  playerProvider.player = playerProfile
+})
 
-//   test('success: display username', () => {
-//     expect(wrapper.get(HTMLUtils.testId('username')).text()).toContain('Player 1')
-//   })
+describe('PlayerQuizView', () => {
+  test('success: render player section', () => {
+    const wrapper = mount(PlayerQuizView)
 
-//   test('success: display image', () => {
-//     expect(wrapper.get(HTMLUtils.testId('image')).attributes('src')).toContain('/image')
-//   })
-// })
+    const $player = wrapper.find(PLAYER_SECTION)
+    expect($player.exists()).toBe(true)
+  })
 
-// describe('PlayerQuestion when no time left', () => {
-//   beforeEach(() => {
-//     container.quizService.listenUpdateCountdownBeforeAnswer.mockImplementation(
-//       (_lobbyId: number, callback: (count: number) => void) => {
-//         callback(0)
-//       },
-//     )
+  test('success: show player username', () => {
+    const wrapper = mount(PlayerQuizView)
 
-//     container.quizService.listenQuestion.mockImplementation(
-//       (_lobbyId: number, callback: (question: QuestionWithAnswers) => void) => {
-//         callback({
-//           id: 1,
-//           order: 1,
-//           title: 'What is the capital of France?',
-//           image: 'image.png',
-//           answers: [
-//             { id: 1, title: 'Paris', isCorrect: true, order: 1 },
-//             { id: 2, title: 'London', isCorrect: false, order: 2 },
-//             { id: 3, title: 'Madrid', isCorrect: false, order: 3 },
-//             { id: 4, title: 'Berlin', isCorrect: false, order: 4 },
-//           ],
-//         })
-//       },
-//     )
+    const username = wrapper.get(`${PLAYER_SECTION} ${HTMLUtils.testId('username')}`)
+    expect(username.text()).toContain(playerProfile.username)
+  })
 
-//     container.quizService.listenPlayerQuestionPoints.mockImplementation(
-//       (_lobbyId: number, _playerId: number, callback: (payload: PlayerAnswer) => void) => {
-//         callback({ playerId: 1, answerId: 1, points: 100, id: 1 })
-//       },
-//     )
+  test('success: show player image', () => {
+    const wrapper = mount(PlayerQuizView)
 
-//     playerProvider.player = { id: 1, username: 'Player 1', image: '/image' }
+    const image = wrapper.get(`${PLAYER_SECTION} ${HTMLUtils.testId('image')}`)
+    expect(image.attributes('src')).toContain(playerProfile.image)
+  })
 
-//     wrapper = mount(PlayerQuestionView)
-//   })
+  test('success: show player points', () => {
+    const wrapper = mount(PlayerQuizView)
 
-//   test('success: does not display the countdown when it is 0', () => {
-//     expect(wrapper.find(HTMLUtils.testId('time-left')).exists()).toBe(false)
-//   })
+    const points = wrapper.get(`${PLAYER_SECTION} ${HTMLUtils.testId('points')}`)
+    expect(points.text()).toContain('0')
+  })
+})
 
-//   test('success: display the button to answer the question', () => {
-//     expect(wrapper.findAll(HTMLUtils.testId('answer-button'))).toHaveLength(4)
-//   })
+describe('PlayerQuizView before-answer-stage', () => {
+  beforeEach(() => {
+    container.quizService.listenQuestion.mockImplementation((_lobbyId, cb) => {
+      cb(question)
+    })
+  })
 
-//   test('success: send the answer when click on the button', async () => {
-//     const lobbyId = 2
-//     const playerId = 1
+  test.each([
+    { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE, exists: true },
+    { stage: 'answering', selector: ANSWERING_STAGE, exists: false },
+    { stage: 'player-points', selector: PLAYER_POINTS_STAGE, exists: false },
+  ])(`success: show status $stage should be $exists`, async ({ selector, exists }) => {
+    const wrapper = mount(PlayerQuizView)
 
-//     await wrapper.findAll(HTMLUtils.testId('answer-button'))[0].trigger('click')
+    const $beforeAnswer = wrapper.find(selector)
+    expect($beforeAnswer.exists()).toBe(exists)
+  })
 
-//     expect(container.quizService.sendAnswer).toHaveBeenCalledWith(lobbyId, playerId, 1)
-//   })
+  test('success: show question title', async () => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
 
-//   test('success: does not show answers when answered', async () => {
-//     await wrapper.findAll(HTMLUtils.testId('answer-button'))[0].trigger('click')
+    const title = wrapper.get(`${BEFORE_ANSWER_STAGE} ${HTMLUtils.testId('question-title')}`)
+    expect(title.text()).toContain(question.title)
+  })
 
-//     expect(wrapper.findAll(HTMLUtils.testId('answer-button'))).toHaveLength(0)
-//   })
+  test('success: show timer to start answering', async () => {
+    container.quizService.listenUpdateCountdownBeforeAnswer.mockImplementation((_lobbyId, cb) => {
+      cb(10)
+    })
 
-//   test('success: once show if the answer is correct', async () => {
-//     await wrapper.findAll(HTMLUtils.testId('answer-button'))[0].trigger('click')
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
 
-//     expect(wrapper.get(HTMLUtils.testId('correct-answer')).text()).toContain('Correct')
-//   })
+    const timer = wrapper.get(`${BEFORE_ANSWER_STAGE} ${HTMLUtils.testId('time-left')}`)
+    expect(timer.text()).toContain('10')
+  })
+})
 
-//   test('success: once show if the answer is incorrect', async () => {
-//     await wrapper.findAll(HTMLUtils.testId('answer-button'))[1].trigger('click')
+describe('PlayerQuizView answering-stage', () => {
+  beforeEach(() => {
+    container.quizService.listenUpdateCountdownBeforeAnswer.mockImplementation((_lobbyId, cb) =>
+      cb(0),
+    )
 
-//     expect(wrapper.get(HTMLUtils.testId('correct-answer')).text()).toContain('Incorrect')
-//   })
+    container.quizService.listenQuestion.mockImplementation((_lobbyId, cb) => {
+      cb(question)
+    })
 
-//   test('success: show points when answered', async () => {
-//     await wrapper.findAll(HTMLUtils.testId('answer-button'))[0].trigger('click')
+    container.quizService.sendAnswer.mockResolvedValue(null)
+  })
 
-//     expect(wrapper.get(HTMLUtils.testId('points')).text()).toContain('100')
-//   })
-// })
+  test.each([
+    { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE, exists: false },
+    { stage: 'answering', selector: ANSWERING_STAGE, exists: true },
+    { stage: 'player-points', selector: PLAYER_POINTS_STAGE, exists: false },
+  ])(`success: show status $stage should be $exists`, async ({ selector, exists }) => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
 
-test(() => {})
+    const $beforeAnswer = wrapper.find(selector)
+    expect($beforeAnswer.exists()).toBe(exists)
+  })
+
+  test('success: show question title', async () => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const title = wrapper.get(`${ANSWERING_STAGE} ${HTMLUtils.testId('question-title')}`)
+    expect(title.text()).toContain(question.title)
+  })
+
+  test('success: show timer to answer', async () => {
+    container.quizService.listenUpdateAnsweringCountdown.mockImplementation((_lobbyId, cb) => {
+      cb(5)
+    })
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const timer = wrapper.get(`${ANSWERING_STAGE} ${HTMLUtils.testId('time-left')}`)
+    expect(timer.text()).toContain('5')
+  })
+
+  test('success: show answers', async () => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const answers = wrapper.findAll(`${ANSWERING_STAGE} ${HTMLUtils.testId('answer')}`)
+    expect(answers).toHaveLength(question.answers.length)
+  })
+
+  test('success: show answer title', async () => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answers = wrapper.findAll(`${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`)
+    $answers.forEach(($answer, index) => {
+      expect($answer.text()).toContain(question.answers[index].title)
+    })
+  })
+
+  test('success: send answer when click on answer', async () => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answer1 = wrapper.findAll(`${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`)[0]
+    await $answer1.trigger('click')
+
+    expect(container.quizService.sendAnswer).toHaveBeenCalledWith(
+      pageParams.lobbyId,
+      playerProfile.id,
+      question.id,
+      question.answers[0].id,
+    )
+  })
+
+  test('success: show player updated points when answered', async () => {
+    container.quizService.sendAnswer.mockResolvedValue(playerAnswer)
+
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answersButtons = wrapper.findAll(
+      `${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`,
+    )
+    const $answer1 = $answersButtons[0]
+    await $answer1.trigger('click')
+
+    const points = wrapper.get(`${PLAYER_SECTION} ${HTMLUtils.testId('points')}`)
+    expect(points.text()).toContain(playerAnswer.points)
+  })
+})
+
+describe('PlayerQuizView answer-points', () => {
+  beforeEach(() => {
+    container.quizService.listenQuestion.mockImplementation((_lobbyId, cb) => {
+      cb(question)
+    })
+    container.quizService.listenUpdateCountdownBeforeAnswer.mockImplementation((_lobbyId, cb) => {
+      cb(0)
+    })
+  })
+
+  test.each([
+    { stage: 'before-answer', selector: BEFORE_ANSWER_STAGE, exists: false },
+    { stage: 'answering', selector: ANSWERING_STAGE, exists: false },
+    { stage: 'player-points', selector: PLAYER_POINTS_STAGE, exists: true },
+  ])(`success: show status $stage should be $exists`, async ({ selector, exists }) => {
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answersButtons = wrapper.findAll(
+      `${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`,
+    )
+    await $answersButtons[0].trigger('click')
+
+    const $playerPoints = wrapper.find(selector)
+    expect($playerPoints.exists()).toBe(exists)
+  })
+
+  test('success: show player points', async () => {
+    container.quizService.sendAnswer.mockResolvedValue(playerAnswer)
+
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answersButtons = wrapper.findAll(
+      `${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`,
+    )
+    await $answersButtons[0].trigger('click')
+
+    const points = wrapper.get(`${PLAYER_POINTS_STAGE} ${HTMLUtils.testId('points')}`)
+    expect(points.text()).toContain(playerAnswer.points)
+  })
+
+  test('success: show 0 points when answer is incorrect', async () => {
+    container.quizService.sendAnswer.mockResolvedValue(null)
+
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $answersButtons = wrapper.findAll(
+      `${ANSWERING_STAGE} ${HTMLUtils.testId('answer-button')}`,
+    )
+    await $answersButtons[1].trigger('click')
+
+    const points = wrapper.get(`${PLAYER_POINTS_STAGE} ${HTMLUtils.testId('points')}`)
+    expect(points.text()).toContain('0')
+  })
+
+  test('success: show answer points when answering countdown ends', async () => {
+    container.quizService.listenUpdateAnsweringCountdown.mockImplementation((_lobbyId, cb) => {
+      cb(0)
+    })
+
+    const wrapper = mount(PlayerQuizView)
+    await flushPromises()
+
+    const $playerPoints = wrapper.find(PLAYER_POINTS_STAGE)
+    expect($playerPoints.exists()).toBe(true)
+  })
+})

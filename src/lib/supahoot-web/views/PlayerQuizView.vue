@@ -1,84 +1,80 @@
-<!-- <script setup lang="ts">
-import type { Answer } from '@/lib/supahoot/quizzes/answer'
-import type { PlayerAnswer } from '@/lib/supahoot/quizzes/player-answer'
-import type { Question } from '@/lib/supahoot/quizzes/question'
+<script setup lang="ts">
 import type { ServicesContainer } from '@/lib/supahoot/services/container'
-import { computed, inject, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { inject, onMounted, ref } from 'vue'
 import type { PlayerProvider } from '../providers/player-provider'
-
-const COUNT_DUMMY_TIME_IN_S = 10
+import { useRoute } from 'vue-router'
+import type { QuestionWithAnswers } from '@/lib/supahoot/quizzes/question'
 
 const route = useRoute()
-
 const lobbyId = parseInt(route.params.lobbyId as string)
 
+const playerProvider = inject<PlayerProvider>('playerProvider')!
 const container = inject<ServicesContainer>('container')!
-const { player } = inject<PlayerProvider>('playerProvider')!
 
-const countdown = ref(COUNT_DUMMY_TIME_IN_S)
-const question = ref<Question | null>(null)
-const playerAnswer = ref<Answer | null>(null)
-const points = ref(0)
+const question = ref<null | QuestionWithAnswers>(null)
+const timeLeftBeforeAnswer = ref(0)
+const timeLeftAnswering = ref(0)
+const stage = ref<'before-answer' | 'answering' | 'player-points'>('before-answer')
+const playerPoints = ref(0)
+const currentAnswerPoints = ref(0)
 
-const isCountdown = computed(() => countdown.value > 0)
-const isAnswering = computed(() => countdown.value === 0 && !playerAnswer.value)
-const showedResultText = computed(() => (playerAnswer.value?.is_correct ? 'Correct' : 'Incorrect'))
+const handleAnswerButton = async (answerId: number) => {
+  stage.value = 'player-points'
 
-const handleAnswerClick = async (answer: Answer) => {
-  await container.quizService.sendAnswer(lobbyId, player!.id, answer.id)
-  playerAnswer.value = answer
-}
+  if (!question.value) return
 
-const restartState = () => {
-  playerAnswer.value = null
-  question.value = null
-  points.value = 0
+  const response = await container.quizService.sendAnswer(
+    lobbyId,
+    playerProvider.player!.id,
+    question.value.id,
+    answerId,
+  )
+
+  if (!response) return
+
+  currentAnswerPoints.value = response.points
+  playerPoints.value = response.points + playerPoints.value
 }
 
 onMounted(() => {
-  container.quizService.listenCountdownBeforeQuestionStart(lobbyId, (timeLeft) => {
-    restartState()
-    countdown.value = timeLeft
-  })
-
   container.quizService.listenQuestion(lobbyId, (currentQuestion) => {
     question.value = currentQuestion
+    stage.value = 'before-answer'
+    currentAnswerPoints.value = 0
   })
-
-  container.quizService.listenPlayerQuestionPoints(
-    lobbyId,
-    player!.id,
-    (playerAnswer: PlayerAnswer) => {
-      points.value = playerAnswer.points
-    },
-  )
+  container.quizService.listenUpdateCountdownBeforeAnswer(lobbyId, (timeLeft) => {
+    timeLeftBeforeAnswer.value = timeLeft
+    if (timeLeft === 0) stage.value = 'answering'
+  })
+  container.quizService.listenUpdateAnsweringCountdown(lobbyId, (timeLeft) => {
+    timeLeftAnswering.value = timeLeft
+    if (timeLeft === 0) stage.value = 'player-points'
+  })
 })
 </script>
 
 <template>
   <div>
-    <div v-if="isCountdown">
-      <div data-testid="time-left">{{ countdown }}</div>
+    <div data-testid="player-section">
+      <div data-testid="username">{{ playerProvider.player?.username }}</div>
+      <img data-testid="image" :src="playerProvider.player?.image" width="50" />
+      <div data-testid="points">{{ playerPoints }}</div>
     </div>
-    <div v-if="isAnswering && question">
-      <button
-        v-for="answer in question.answers"
-        :key="answer.id"
-        data-testid="answer-button"
-        @click="handleAnswerClick(answer)"
-      ></button>
+    <div data-testid="before-answer-stage" v-if="stage === 'before-answer'">
+      <div data-testid="question-title">{{ question?.title }}</div>
+      <div data-testid="time-left">{{ timeLeftBeforeAnswer }}</div>
     </div>
-    <div v-if="playerAnswer">
-      <div data-testid="correct-answer">{{ showedResultText }}</div>
-      <div data-testid="points">{{ points }}</div>
+    <div data-testid="answering-stage" v-else-if="stage === 'answering'">
+      <div data-testid="time-left">{{ timeLeftAnswering }}</div>
+      <div data-testid="question-title">{{ question?.title }}</div>
+      <div data-testid="answer" v-for="answer in question?.answers" :key="answer.id">
+        <button data-testid="answer-button" @click="handleAnswerButton(answer.id)">
+          {{ answer.title }}
+        </button>
+      </div>
     </div>
-    <div v-if="player">
-      <div data-testid="username">{{ player.username }}</div>
-      <img data-testid="image" :src="player.image" />
+    <div data-testid="player-points-stage" v-else-if="stage === 'player-points'">
+      <div data-testid="points">{{ currentAnswerPoints }}</div>
     </div>
   </div>
-</template> -->
-<template>
-  <div></div>
 </template>

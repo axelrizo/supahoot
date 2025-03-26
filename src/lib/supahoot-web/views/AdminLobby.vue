@@ -124,14 +124,15 @@ onMounted(async () => {
   <div>
     <div v-if="stage === 'lobby'" data-testid="lobby-stage">
       <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
+      <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
+      <p>{{ lobbyLink }}</p>
+      <button data-testid="initialize-quiz" @click="handleInitializeQuizButtonClick">
+        initialize quiz
+      </button>
       <div data-testid="player" v-for="player in players" :key="player.id">
         <p data-testid="username">{{ player.username }}</p>
         <img data-testid="avatar" :src="player.image" />
       </div>
-      <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
-      <button data-testid="initialize-quiz" @click="handleInitializeQuizButtonClick">
-        initialize quiz
-      </button>
     </div>
     <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
       <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>

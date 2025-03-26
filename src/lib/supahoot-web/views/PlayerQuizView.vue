@@ -104,8 +104,14 @@ onMounted(() => {
         </button>
       </div>
     </div>
-    <div data-testid="player-points-stage" v-else-if="stage === 'player-points'">
-      <div data-testid="points">{{ currentAnswerPoints }}</div>
+    <div
+      data-testid="player-points-stage"
+      v-else-if="stage === 'player-points'"
+      class="flex flex-col h-screen items-center justify-center gap-4"
+    >
+      <div class="text-2xl font-black">You've obtained</div>
+      <div data-testid="points" class="text-5xl">{{ currentAnswerPoints }}</div>
+      <div class="text-2xl font-black">points!</div>
     </div>
   </div>
 </template>

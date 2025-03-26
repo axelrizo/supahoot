@@ -211,7 +211,9 @@ export type Database = {
           lobby_id_input: number
         }
         Returns: {
-          player_id: number
+          id: number
+          username: string
+          image: string
           total_points: number
         }[]
       }

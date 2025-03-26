@@ -121,17 +121,32 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="p-4">
     <div v-if="stage === 'lobby'" data-testid="lobby-stage">
-      <div data-testid="lobby-id">Lobby ID: {{ lobbyId }}</div>
-      <div data-testid="player" v-for="player in players" :key="player.id">
-        <p data-testid="username">{{ player.username }}</p>
-        <img data-testid="avatar" :src="player.image" />
+      <div class="flex items-center">
+        <div data-testid="lobby-id" class="text-4xl p-2 font-bold">Lobby ID: {{ lobbyId }}</div>
+        <button
+          class="btn btn-primary btn-xl"
+          data-testid="initialize-quiz"
+          @click="handleInitializeQuizButtonClick"
+        >
+          initialize quiz
+        </button>
       </div>
-      <QrcodeVue :value="lobbyLink" data-testid="qr-code" />
-      <button data-testid="initialize-quiz" @click="handleInitializeQuizButtonClick">
-        initialize quiz
-      </button>
+      <div class="grid grid-cols-2 gap-4 p-4 items-center justify-items-center">
+        <QrcodeVue :value="lobbyLink" size="500" data-testid="qr-code" />
+        <div class="container">
+          <div
+            data-testid="player"
+            v-for="player in players"
+            :key="player.id"
+            class="flex items-center flex-col"
+          >
+            <img data-testid="avatar" class="w-15" :src="player.image" />
+            <p data-testid="username">{{ player.username }}</p>
+          </div>
+        </div>
+      </div>
     </div>
     <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
       <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
@@ -178,3 +193,11 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style>
+.container {
+  display: grid;
+  grid-gap: 35;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+</style>

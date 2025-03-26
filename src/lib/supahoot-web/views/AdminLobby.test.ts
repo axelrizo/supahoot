@@ -255,7 +255,7 @@ describe('AdminLobby before-answer-stage', () => {
     await clickInitializeQuiz(wrapper)
 
     const $questionTitle = wrapper.get(`${BEFORE_ANSWER_STAGE} ${testId('question-title')}`)
-    expect($questionTitle.text()).toContain(quizWithThreeQuestions.name)
+    expect($questionTitle.text()).toContain(quizWithThreeQuestions.questions[0].title)
   })
 
   test('success: show time left to start question and show updated time', async () => {

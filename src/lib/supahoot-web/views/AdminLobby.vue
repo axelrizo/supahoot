@@ -134,7 +134,7 @@ onMounted(async () => {
       </button>
     </div>
     <div v-else-if="stage === 'before-answer'" data-testid="before-answer-stage">
-      <div data-testid="question-title">{{ quiz?.name }}</div>
+      <div data-testid="question-title">{{ quiz?.questions[activeQuestion].title }}</div>
       <div data-testid="time-left">{{ timeLeftToStartAnswering }}</div>
     </div>
     <div v-else-if="stage === 'answering'" data-testid="answering-stage">
@@ -158,7 +158,7 @@ onMounted(async () => {
         :data-is-correct="answer.isCorrect"
       >
         <div data-testid="title">{{ answer.title }}</div>
-        <div data-testid="player-count">{{ answer.playerCount }}</div>
+        <div data-testid="player-count">{{ answer.playerCount || 0 }}</div>
       </div>
       <button
         v-if="showNextQuestionButton"

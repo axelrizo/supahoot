@@ -286,7 +286,6 @@ export class SupabaseQuizService implements QuizService {
         })
       })
       .on('broadcast', { event: 'send_question' }, (payload) => {
-        console.log('🚀 ~ payload:', payload)
         this.eventListeners.listenQuestion.forEach((listener) => {
           listener(payload.payload)
         })

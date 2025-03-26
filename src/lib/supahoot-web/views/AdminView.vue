@@ -30,10 +30,19 @@ const createLobby = async (quizId: number) => {
 </script>
 
 <template>
-  <div v-for="quiz in quizzes" :key="quiz.id">
-    <h1 data-testid="quiz-title">{{ quiz.name }}</h1>
-    <button data-testid="initialize-quiz-button" v-on:click="createLobby(quiz.id)">
-      Initialize
-    </button>
+  <div>
+    <h2 class="text-3xl p-2 font-bold">Quizzes</h2>
+    <ul class="list">
+      <li class="list-row flex items-center" v-for="quiz in quizzes" :key="quiz.id">
+        <h1 data-testid="quiz-title">{{ quiz.name }}</h1>
+        <button
+          class="btn btn-primary"
+          data-testid="initialize-quiz-button"
+          v-on:click="createLobby(quiz.id)"
+        >
+          Initialize
+        </button>
+      </li>
+    </ul>
   </div>
 </template>

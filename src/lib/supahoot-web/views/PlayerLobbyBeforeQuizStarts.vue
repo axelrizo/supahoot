@@ -32,8 +32,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="player">
-    <img :src="player.image" data-testid="player-avatar" />
-    <span data-testid="player-username">{{ player.username }}</span>
+  <div v-if="player" class="flex items-center justify-center flex-col h-screen">
+    <div class="text-xl pb-20">Waiting more players...</div>
+    <img :src="player.image" data-testid="player-avatar" class="aspect-square w-40" />
+    <span data-testid="player-username" class="text-2xl">{{ player.username }}</span>
   </div>
 </template>

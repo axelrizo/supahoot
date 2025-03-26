@@ -2,7 +2,7 @@
 import type { NotificationProvider } from '@supahoot-web/providers/notification-provider'
 import type { ServicesContainer } from '@supahoot/services/container'
 import { FileUtils } from '@supahoot/utils/file.utils'
-import { inject, ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { PlayerProvider } from '../providers/player-provider'
 
@@ -48,19 +48,29 @@ const handleInput = async (_event: Event) => {
   playerAvatar.value = avatar
   playerAvatarSource.value = await FileUtils.fileToDataURL(avatar)
 }
+
+onMounted(async () => {
+  const avatar = await container.avatarService.generateAvatarByString(crypto.randomUUID())
+  playerAvatarSource.value = await FileUtils.fileToDataURL(avatar)
+})
 </script>
 
 <template>
-  <div>
-    <form v-on:submit.prevent="submitPlayer" data-testid="player-form">
-      <img data-testid="player-avatar" :src="playerAvatarSource" />
+  <div class="flex items-center justify-center flex-col gap-10 h-screen">
+    <form
+      v-on:submit.prevent="submitPlayer"
+      data-testid="player-form"
+      class="flex flex-col items-center gap-4"
+    >
+      <img data-testid="player-avatar" class="aspect-square w-32" :src="playerAvatarSource" />
       <input
         type="text"
         v-on:input="handleInput"
         v-model="playerUsername"
         data-testid="player-username-input"
+        class="input"
       />
-      <input type="submit" data-testid="player-submit" />
+      <input type="submit" data-testid="player-submit" class="btn btn-lg btn-primary w-full" />
     </form>
   </div>
 </template>

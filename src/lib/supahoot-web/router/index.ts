@@ -6,12 +6,18 @@ import PlayerProviders from '@supahoot-web/views/PlayerProviders.vue'
 import PlayersLobby from '@supahoot-web/views/PlayersLobby.vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import PlayerQuestionView from '../views/PlayerQuestionView.vue'
+import MockComponent from '@/test/support/MockComponent.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/admin', name: 'admin', component: AdminView },
     { path: '/admin/quiz/:quizId/lobby/:lobbyId', name: 'admin-lobby', component: AdminLobby },
+    {
+      path: '/admin/quiz/:quizId/lobby/:lobbyId/awards',
+      name: 'admin-awards',
+      component: MockComponent,
+    },
     { path: '/', name: 'home', component: HomeView },
     {
       path: '/quiz/:quizId/lobby/:lobbyId',

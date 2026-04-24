@@ -2,6 +2,7 @@ import { container, notificationProvider } from '@/test/support/setup-container-
 import { testId } from '@/test/support/utils/html-utils'
 import HomeView from '@supahoot-web/views/HomeView.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
+import { expectErrorNotification } from '@/test/support/utils/expect-utils'
 
 describe('HomeView', () => {
   describe('when lobby exists and user joins', () => {
@@ -81,14 +82,6 @@ describe('HomeView', () => {
     await wrapper.get(testId('join-lobby-input')).setValue(lobbyId)
     await wrapper.get(testId('join-lobby-form')).trigger('submit')
     return
-  }
-
-  /**
-   * Expects the user to receive an error notification
-   * @param error The error message in the notification
-   */
-  const expectErrorNotification = (error: string): void => {
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith(`Error: ${error}`)
   }
 
   /**

@@ -7,7 +7,7 @@ import {
 import { testId } from '@/test/support/utils/html-utils'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
-import PlayerLobbyBeforeQuizStarts from './PlayerLobbyBeforeQuizStarts.vue'
+import PlayerLobbyBeforeQuizStarts from './PlayerLobbyBeforeQuizStartsView.vue'
 
 let wrapper: VueWrapper
 let router: RouterMock

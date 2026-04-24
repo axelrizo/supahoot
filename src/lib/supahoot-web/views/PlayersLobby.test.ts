@@ -27,7 +27,7 @@ describe('PlayersLobbyView', () => {
     test('calls the create player service by lobby', async () => {
       await playerIsInLobbyWithQuiz(10, 1)
       const { avatarFile } = createAvatarFileAndMockDataURL()
-      const player = createPlayerServiceReturnsAPlayer()
+      createPlayerServiceReturnsAPlayer()
       const playersLobbyView = mountPlayersLobbyView()
 
       await playerFillsUsernameAndSubmitsForm(playersLobbyView, 'any-username')

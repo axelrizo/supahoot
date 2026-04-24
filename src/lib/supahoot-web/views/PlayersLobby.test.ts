@@ -18,7 +18,7 @@ const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
 const base64ImageData = 'data:image/jpeg;base64,'
 vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
 
-describe('PlayersLobby', () => {
+describe('PlayersLobbyView', () => {
   beforeEach(() => {
     router = getRouter()
 
@@ -41,64 +41,72 @@ describe('PlayersLobby', () => {
     wrapper = mount(PlayersLobby)
   })
 
-  test('success: get a generated avatar while player is filling the username input', async () => {
-    await wrapper.get(testId('player-username-input')).setValue('input')
-    await flushPromises()
+  describe('when user fills username input', () => {
+    test("gets a generated avatar", async () => {
+      await wrapper.get(testId('player-username-input')).setValue('input')
+      await flushPromises()
 
-    expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
-  })
-
-  test('success: send its username, lobbyId and avatar to service to create the player', async () => {
-    await wrapper.get(testId('player-username-input')).setValue('Player 1')
-    await wrapper.get(testId('player-form')).trigger('submit')
-
-    expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(
-      1,
-      'Player 1',
-      avatarFile,
-    )
-  })
-
-  test('success: user is stored in user provider after creation', async () => {
-    await wrapper.get(testId('player-username-input')).setValue('Player 1')
-    await wrapper.get(testId('player-form')).trigger('submit')
-
-    expect(playerProvider.player).toEqual({
-      id: 1,
-      username: 'Player 1',
-      avatar: '/dummy_avatar.png',
+      expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
     })
   })
 
-  test('success: redirect player to before quiz starts page', async () => {
-    await wrapper.get(testId('player-username-input')).setValue('Player 1')
-    await wrapper.get(testId('player-form')).trigger('submit')
+  describe('when user submits the form', () => {
+    test('calls the create player service', async () => {
+      await wrapper.get(testId('player-username-input')).setValue('Player 1')
+      await wrapper.get(testId('player-form')).trigger('submit')
 
-    expect(router.currentRoute.value).toMatchObject({
-      name: 'player-lobby-before-quiz-starts',
-      params: { quizId: '1', lobbyId: '1' },
+      expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(
+        1,
+        'Player 1',
+        avatarFile,
+      )
+    })
+
+    test('stores user in player provider', async () => {
+      await wrapper.get(testId('player-username-input')).setValue('Player 1')
+      await wrapper.get(testId('player-form')).trigger('submit')
+
+      expect(playerProvider.player).toEqual({
+        id: 1,
+        username: 'Player 1',
+        avatar: '/dummy_avatar.png'
+      })
+    })
+
+    test('redirects to before quiz starts page', async () => {
+      await wrapper.get(testId('player-username-input')).setValue('Player 1')
+      await wrapper.get(testId('player-form')).trigger('submit')
+
+      expect(router.currentRoute.value).toMatchObject({
+        name: 'player-lobby-before-quiz-starts',
+        params: { quizId: '1', lobbyId: '1' },
+      })
     })
   })
 
-  test('error: username should be at least 4 characters long', async () => {
-    await wrapper.get(testId('player-username-input')).setValue('123')
-    await wrapper.get(testId('player-form')).trigger('submit')
+  describe('when user submits a very short username', () => {
+    test('shows an error notification', async () => {
+      await wrapper.get(testId('player-username-input')).setValue('123')
+      await wrapper.get(testId('player-form')).trigger('submit')
 
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-      'Error: Username should be at least 4 characters long',
-    )
+      expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+        'Error: Username should be at least 4 characters long',
+      )
+    })
   })
 
-  test('error: show notification when player creation fails', async () => {
-    container.quizService.createPlayerByLobbyId.mockRejectedValue(
-      new Error('Error: Failed to create player'),
-    )
+  describe('when user submits and service throws an error', () => {
+    test('shows an error notification', async () => {
+      container.quizService.createPlayerByLobbyId.mockRejectedValue(
+        new Error('Error: Failed to create player'),
+      )
 
-    await wrapper.get(testId('player-username-input')).setValue('Player 1')
-    await wrapper.get(testId('player-form')).trigger('submit')
+      await wrapper.get(testId('player-username-input')).setValue('Player 1')
+      await wrapper.get(testId('player-form')).trigger('submit')
 
-    expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-      'Error: Failed to create player',
-    )
+      expect(notificationProvider.showNotification).toHaveBeenCalledWith(
+        'Error: Failed to create player',
+      )
+    })
   })
 })

@@ -1,4 +1,3 @@
-import MockComponent from '@/test/support/MockComponent.vue'
 import { container, notificationProvider } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import HomeView from '@supahoot-web/views/HomeView.vue'

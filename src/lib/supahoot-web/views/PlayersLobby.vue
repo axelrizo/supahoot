@@ -35,7 +35,7 @@ const submitPlayer = async () => {
     )
     await router.push({
       name: 'player-lobby-before-quiz-starts',
-      params: { lobbyId: lobbyId, quizId: quizId },
+      params: { lobbyId: lobbyId.toString(), quizId: quizId.toString() },
     })
   } catch (_error) {
     notificationProvider.showNotification('Error: Failed to create player')

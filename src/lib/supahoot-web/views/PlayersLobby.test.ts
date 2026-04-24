@@ -23,12 +23,6 @@ describe('PlayersLobbyView', () => {
 
     router.setParams({ quizId: 1, lobbyId: 1 })
 
-    router.addRoute({
-      path: '/quiz/:quizId/lobby/:lobbyId',
-      name: 'player-lobby-before-quiz-starts',
-      component: MockComponent,
-    })
-
     container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
 
     container.quizService.createPlayerByLobbyId.mockResolvedValue({
@@ -82,10 +76,12 @@ describe('PlayersLobbyView', () => {
       await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
       await playersLobbyView.get(testId('player-form')).trigger('submit')
 
-      expect(router.currentRoute.value).toMatchObject({
-        name: 'player-lobby-before-quiz-starts',
-        params: { quizId: '1', lobbyId: '1' },
-      })
+      expect(router.push).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'player-lobby-before-quiz-starts',
+          params: { quizId: '1', lobbyId: '1' },
+        }),
+      )
     })
   })
 

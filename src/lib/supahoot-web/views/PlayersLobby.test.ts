@@ -10,7 +10,6 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 
-let wrapper: VueWrapper
 let router: RouterMock
 
 const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
@@ -37,23 +36,25 @@ describe('PlayersLobbyView', () => {
       username: 'Player 1',
       avatar: '/dummy_avatar.png',
     })
-
-    wrapper = mount(PlayersLobby)
   })
 
   describe('when user fills username input', () => {
     test("gets a generated avatar", async () => {
-      await wrapper.get(testId('player-username-input')).setValue('input')
+      const playersLobbyView = mountPlayersLobbyView()
+
+      await playersLobbyView.get(testId('player-username-input')).setValue('input')
       await flushPromises()
 
-      expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
+      expect(playersLobbyView.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
     })
   })
 
   describe('when user submits the form', () => {
     test('calls the create player service', async () => {
-      await wrapper.get(testId('player-username-input')).setValue('Player 1')
-      await wrapper.get(testId('player-form')).trigger('submit')
+      const playersLobbyView = mountPlayersLobbyView()
+
+      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
+      await playersLobbyView.get(testId('player-form')).trigger('submit')
 
       expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(
         1,
@@ -63,8 +64,10 @@ describe('PlayersLobbyView', () => {
     })
 
     test('stores user in player provider', async () => {
-      await wrapper.get(testId('player-username-input')).setValue('Player 1')
-      await wrapper.get(testId('player-form')).trigger('submit')
+      const playersLobbyView = mountPlayersLobbyView()
+
+      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
+      await playersLobbyView.get(testId('player-form')).trigger('submit')
 
       expect(playerProvider.player).toEqual({
         id: 1,
@@ -74,8 +77,10 @@ describe('PlayersLobbyView', () => {
     })
 
     test('redirects to before quiz starts page', async () => {
-      await wrapper.get(testId('player-username-input')).setValue('Player 1')
-      await wrapper.get(testId('player-form')).trigger('submit')
+      const playersLobbyView = mountPlayersLobbyView()
+
+      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
+      await playersLobbyView.get(testId('player-form')).trigger('submit')
 
       expect(router.currentRoute.value).toMatchObject({
         name: 'player-lobby-before-quiz-starts',
@@ -86,8 +91,10 @@ describe('PlayersLobbyView', () => {
 
   describe('when user submits a very short username', () => {
     test('shows an error notification', async () => {
-      await wrapper.get(testId('player-username-input')).setValue('123')
-      await wrapper.get(testId('player-form')).trigger('submit')
+      const playersLobbyView = mountPlayersLobbyView()
+
+      await playersLobbyView.get(testId('player-username-input')).setValue('123')
+      await playersLobbyView.get(testId('player-form')).trigger('submit')
 
       expect(notificationProvider.showNotification).toHaveBeenCalledWith(
         'Error: Username should be at least 4 characters long',
@@ -97,16 +104,22 @@ describe('PlayersLobbyView', () => {
 
   describe('when user submits and service throws an error', () => {
     test('shows an error notification', async () => {
+      const playersLobbyView = mountPlayersLobbyView()
       container.quizService.createPlayerByLobbyId.mockRejectedValue(
         new Error('Error: Failed to create player'),
       )
 
-      await wrapper.get(testId('player-username-input')).setValue('Player 1')
-      await wrapper.get(testId('player-form')).trigger('submit')
+      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
+      await playersLobbyView.get(testId('player-form')).trigger('submit')
 
       expect(notificationProvider.showNotification).toHaveBeenCalledWith(
         'Error: Failed to create player',
       )
     })
   })
+
+  /**
+   * Mounts the PlayersLobby component and returns the wrapper
+   */
+  const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobby)
 })

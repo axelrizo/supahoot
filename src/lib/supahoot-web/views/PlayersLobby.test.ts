@@ -1,11 +1,10 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
 import {
   container,
-  notificationProvider,
   playerProvider,
 } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 import type { Player } from '@/lib/supahoot/quizzes/player'
@@ -93,7 +92,6 @@ describe('PlayersLobbyView', () => {
    */
   const playerFillsUsername = async (wrapper: VueWrapper, username: string): Promise<void> => {
     await wrapper.get(testId('player-username-input')).setValue(username)
-    await flushPromises()
   }
 
   /**

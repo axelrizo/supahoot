@@ -9,6 +9,7 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 import type { Player } from '@/lib/supahoot/quizzes/player'
+import { expectErrorNotification } from '@/test/support/utils/expect-utils'
 
 describe('PlayersLobbyView', () => {
   describe('when player fills username input', () => {
@@ -62,28 +63,21 @@ describe('PlayersLobbyView', () => {
     test('shows an error notification', async () => {
       const playersLobbyView = mountPlayersLobbyView()
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('123')
-      await playersLobbyView.get(testId('player-form')).trigger('submit')
+      await playerFillsUsernameAndSubmitsForm(playersLobbyView, '123')
 
-      expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-        'Error: Username should be at least 4 characters long',
-      )
+      expectErrorNotification('Username should be at least 4 characters long')
     })
   })
+
 
   describe('when player submits and service throws an error', () => {
     test('shows an error notification', async () => {
       const playersLobbyView = mountPlayersLobbyView()
-      container.quizService.createPlayerByLobbyId.mockRejectedValue(
-        new Error('Error: Failed to create player'),
-      )
+      createPlayerServiceFailsWith('Error: Failed to create player')
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
-      await playersLobbyView.get(testId('player-form')).trigger('submit')
+      await playerFillsUsernameAndSubmitsForm(playersLobbyView, 'any-username')
 
-      expect(notificationProvider.showNotification).toHaveBeenCalledWith(
-        'Error: Failed to create player',
-      )
+      expectErrorNotification('Failed to create player')
     })
   })
 
@@ -189,5 +183,13 @@ describe('PlayersLobbyView', () => {
         params: { quizId: quizId.toString(), lobbyId: lobbyId.toString() },
       }),
     )
+  }
+
+  /**
+   * Mocks the createPlayerByLobbyId service to throw an error with the given message
+   * @param error - The error message to throw
+   */
+  const createPlayerServiceFailsWith = (error: string): void => {
+    container.quizService.createPlayerByLobbyId.mockRejectedValue(new Error(error))
   }
 })

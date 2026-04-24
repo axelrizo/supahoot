@@ -22,11 +22,11 @@ describe('HomeView', () => {
 
   describe('when lobby exists and user joins', () => {
     test('redirects to lobby', async () => {
-      serviceHasLobbyWithQuizzId(1)
+      serviceHasLobbyWithQuizzId(10)
 
       await userJoinsLobby(1)
 
-      expectRedirectUserToLobbyWithQuiz(1, 1)
+      expectRedirectUserToLobbyWithQuiz(1, 10)
     })
   })
 

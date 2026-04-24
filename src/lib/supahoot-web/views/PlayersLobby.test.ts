@@ -10,30 +10,16 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 
-let router: RouterMock
-
 const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
 
 const base64ImageData = 'data:image/jpeg;base64,'
 vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
 
 describe('PlayersLobbyView', () => {
-  beforeEach(() => {
-    router = getRouter()
-
-    router.setParams({ quizId: 1, lobbyId: 1 })
-
-    container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
-
-    container.quizService.createPlayerByLobbyId.mockResolvedValue({
-      id: 1,
-      username: 'Player 1',
-      avatar: '/dummy_avatar.png',
-    })
-  })
-
   describe('when user fills username input', () => {
     test("gets a generated avatar", async () => {
+      container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
+
       const playersLobbyView = mountPlayersLobbyView()
 
       await playersLobbyView.get(testId('player-username-input')).setValue('input')
@@ -45,6 +31,15 @@ describe('PlayersLobbyView', () => {
 
   describe('when user submits the form', () => {
     test('calls the create player service', async () => {
+      const router = getRouter()
+      container.quizService.createPlayerByLobbyId.mockResolvedValue({
+        id: 1,
+        username: 'Player 1',
+        avatar: '/dummy_avatar.png',
+      })
+
+      router.setParams({ quizId: 1, lobbyId: 1 })
+
       const playersLobbyView = mountPlayersLobbyView()
 
       await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
@@ -58,6 +53,11 @@ describe('PlayersLobbyView', () => {
     })
 
     test('stores user in player provider', async () => {
+      container.quizService.createPlayerByLobbyId.mockResolvedValue({
+        id: 1,
+        username: 'Player 1',
+        avatar: '/dummy_avatar.png',
+      })
       const playersLobbyView = mountPlayersLobbyView()
 
       await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
@@ -71,6 +71,13 @@ describe('PlayersLobbyView', () => {
     })
 
     test('redirects to before quiz starts page', async () => {
+      const router = getRouter()
+      container.quizService.createPlayerByLobbyId.mockResolvedValue({
+        id: 1,
+        username: 'Player 1',
+        avatar: '/dummy_avatar.png',
+      })
+      router.setParams({ quizId: 1, lobbyId: 1 })
       const playersLobbyView = mountPlayersLobbyView()
 
       await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')

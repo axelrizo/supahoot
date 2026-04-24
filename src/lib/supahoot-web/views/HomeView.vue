@@ -20,7 +20,7 @@ const handleSubmitForm = async () => {
   try {
     const quiz = await container.quizService.getQuizByLobbyId(parseInt(lobbyId.value))
 
-    await router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value, quizId: quiz.id } })
+    await router.push({ name: 'player-lobby', params: { lobbyId: lobbyId.value, quizId: quiz.id.toString() } })
   } catch (error) {
     if (error instanceof Error) {
       notificationProvider.showNotification(`Error: ${error.message}`)

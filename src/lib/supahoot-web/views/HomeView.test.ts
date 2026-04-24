@@ -3,38 +3,25 @@ import { container, notificationProvider } from '@/test/support/setup-container-
 import { testId } from '@/test/support/utils/html-utils'
 import HomeView from '@supahoot-web/views/HomeView.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { getRouter, type RouterMock } from 'vue-router-mock'
-
-let wrapper: VueWrapper
-let router: RouterMock
 
 describe('HomeView', () => {
-  beforeEach(() => {
-    router = getRouter()
-    router.addRoute({
-      path: '/quiz/:quizId/lobby/:lobbyId',
-      name: 'player-lobby',
-      component: MockComponent,
-    })
-
-    wrapper = mount(HomeView)
-  })
-
   describe('when lobby exists and user joins', () => {
     test('redirects to lobby', async () => {
+      const homeView = mountHomeView()
       serviceHasLobbyWithQuizzId(10)
 
-      await userJoinsLobby(1)
+      await userJoinsLobby(homeView, 1)
 
-      expectRedirectUserToLobbyWithQuiz(1, 10)
+      expectRedirectUserToPlayerLobbyWithQuiz(homeView, 1, 10)
     })
   })
 
   describe('when service throws an error', () => {
     test('sends error notification', async () => {
+      const homeView = mountHomeView()
       quizServiceThrowsError('Dummy error')
 
-      await userJoinsLobby(1)
+      await userJoinsLobby(homeView, 1)
 
       expectErrorNotification('Dummy error')
     })
@@ -42,14 +29,23 @@ describe('HomeView', () => {
 
   describe('when lobby id is invalid', () => {
     test('sends error notification', async () => {
-      await userJoinsLobbyWithString('invalid')
+      const homeView = mountHomeView()
+
+      await userJoinsLobbyWithString(homeView, 'invalid')
 
       expectErrorNotification('Invalid lobby id')
     })
   })
 
   /**
-   * Mocks the quiz service to return a quiz for the given lobby id
+   * Mounts HomeView
+   * @returns The mounted HomeView component
+   */
+  const mountHomeView = (): VueWrapper => mount(HomeView)
+
+  /**
+   * Each lobby has a quiz associated with it, so we mock the returned quiz simulating
+   * that the lobby has that quiz running.
    * @param quizId The quiz id returned by the service
    */
   const serviceHasLobbyWithQuizzId = (quizId: number): void => {
@@ -68,9 +64,10 @@ describe('HomeView', () => {
 
   /**
    * Simulates the user joining a lobby by filling the form and submitting it
+   * @param wrapper The mounted HomeView component
    * @param lobbyId The lobby id to join
    */
-  const userJoinsLobby = async (lobbyId: number): Promise<void> => {
+  const userJoinsLobby = async (wrapper: VueWrapper, lobbyId: number): Promise<void> => {
     await wrapper.get(testId('join-lobby-input')).setValue(lobbyId.toString())
     await wrapper.get(testId('join-lobby-form')).trigger('submit')
     return
@@ -78,9 +75,10 @@ describe('HomeView', () => {
 
   /**
    * Simulates the user joining a lobby by filling the form and submitting it with a string value
+   * @param wrapper The mounted HomeView component
    * @param lobbyId The lobby id to join as a string
    */
-  const userJoinsLobbyWithString = async (lobbyId: string): Promise<void> => {
+  const userJoinsLobbyWithString = async (wrapper: VueWrapper, lobbyId: string): Promise<void> => {
     await wrapper.get(testId('join-lobby-input')).setValue(lobbyId)
     await wrapper.get(testId('join-lobby-form')).trigger('submit')
     return
@@ -95,14 +93,14 @@ describe('HomeView', () => {
   }
 
   /**
-   * User is redirected to the lobby and quiz
-   * @param lobbyId The lobby id the user should be redirected to
-   * @param quizId The quiz id the user should be redirected to
+   * Expects the user to be redirected to player lobby with the quiz associated with the lobby
+   * @param wrapper The mounted HomeView component
+   * @param lobbyId The lobby id the user is trying to join
+   * @param quizId The quiz id associated with the lobby
    */
-  const expectRedirectUserToLobbyWithQuiz = (lobbyId: number, quizId: number): void => {
-    expect(router.currentRoute.value).toMatchObject({
-      name: 'player-lobby',
-      params: { lobbyId: lobbyId.toString(), quizId: quizId.toString() },
-    })
+  const expectRedirectUserToPlayerLobbyWithQuiz = (wrapper: VueWrapper, lobbyId: number, quizId: number): void => {
+    expect(wrapper.router.push).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'player-lobby', params: { lobbyId: lobbyId.toString(), quizId: quizId.toString() } })
+    )
   }
 })

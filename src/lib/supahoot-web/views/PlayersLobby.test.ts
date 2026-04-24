@@ -10,14 +10,14 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 
-const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
-
-const base64ImageData = 'data:image/jpeg;base64,'
-vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
-
 describe('PlayersLobbyView', () => {
   describe('when user fills username input', () => {
     test("gets a generated avatar", async () => {
+      const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
+
+      const base64ImageData = 'data:image/jpeg;base64,'
+      vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
+
       container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
 
       const playersLobbyView = mountPlayersLobbyView()
@@ -31,13 +31,20 @@ describe('PlayersLobbyView', () => {
 
   describe('when user submits the form', () => {
     test('calls the create player service', async () => {
-      const router = getRouter()
+      const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
+
+      const base64ImageData = 'data:image/jpeg;base64,'
+      vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
+
+      container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
+
       container.quizService.createPlayerByLobbyId.mockResolvedValue({
         id: 1,
         username: 'Player 1',
         avatar: '/dummy_avatar.png',
       })
 
+      const router = getRouter()
       router.setParams({ quizId: 1, lobbyId: 1 })
 
       const playersLobbyView = mountPlayersLobbyView()

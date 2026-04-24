@@ -10,21 +10,16 @@ import { getRouter } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
 
 describe('PlayersLobbyView', () => {
+
+
   describe('when user fills username input', () => {
-    test("gets a generated avatar", async () => {
-      const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
-
-      const base64ImageData = 'data:image/jpeg;base64,'
-      vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
-
-      container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
-
+    test("displays the generated avatar", async () => {
+      const { avatarDataURL } = createAvatarFileAndMockDataURL()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('input')
-      await flushPromises()
+      await userFillsUsername(playersLobbyView, 'any username')
 
-      expect(playersLobbyView.get(testId('player-avatar')).attributes('src')).toBe(base64ImageData)
+      expectDisplayAvatar(playersLobbyView, avatarDataURL)
     })
   })
 
@@ -131,4 +126,37 @@ describe('PlayersLobbyView', () => {
    * Mounts the PlayersLobby component and returns the wrapper
    */
   const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobby)
+
+  /**
+   * Helper function to simulate user filling the username input
+   * @param wrapper - The PlayersLobby wrapper
+   * @param username - The username to fill in the input
+   */
+  const userFillsUsername = async (wrapper: VueWrapper, username: string): Promise<void> => {
+    await wrapper.get(testId('player-username-input')).setValue(username)
+    await flushPromises()
+  }
+
+  /**
+   * Assert that the avatar image is displayed with the correct src
+   * @param wrapper - The PlayersLobby wrapper
+   * @param avatarSrc - The expected src of the avatar image
+   */
+  const expectDisplayAvatar = (wrapper: VueWrapper, avatarSrc: string): void => {
+    const avatarImg = wrapper.get(testId('player-avatar'))
+    expect(avatarImg.attributes('src')).toBe(avatarSrc)
+  }
+
+  /**
+   * Returns a fake avatar file and mocks the FileUtils.fileToDataURL to return a corresponding
+   * data URL
+   */
+  const createAvatarFileAndMockDataURL = (): { avatarFile: File; avatarDataURL: string } => {
+    const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
+
+    const mockedDataURL = 'data:image/jpeg;base64,'
+    vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(mockedDataURL)
+
+    return { avatarFile, avatarDataURL: mockedDataURL }
+  }
 })

@@ -8,92 +8,57 @@ import { testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
 import PlayersLobby from './PlayersLobby.vue'
+import type { Player } from '@/lib/supahoot/quizzes/player'
 
 describe('PlayersLobbyView', () => {
-
-
-  describe('when user fills username input', () => {
+  describe('when player fills username input', () => {
     test("displays the generated avatar", async () => {
       const { avatarDataURL } = createAvatarFileAndMockDataURL()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await userFillsUsername(playersLobbyView, 'any username')
+      await playerFillsUsername(playersLobbyView, 'any username')
 
       expectDisplayAvatar(playersLobbyView, avatarDataURL)
     })
   })
 
-  describe('when user submits the form', () => {
-    test('calls the create player service', async () => {
-      const avatarFile = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
 
-      const base64ImageData = 'data:image/jpeg;base64,'
-      vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(base64ImageData)
-
-      container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
-
-      container.quizService.createPlayerByLobbyId.mockResolvedValue({
-        id: 1,
-        username: 'Player 1',
-        avatar: '/dummy_avatar.png',
-      })
-
-      const router = getRouter()
-      router.setParams({ quizId: 1, lobbyId: 1 })
-
+  describe('when player submits the form', () => {
+    test('calls the create player service by lobby', async () => {
+      await playerIsInLobbyWithQuiz(10, 1)
+      const { avatarFile } = createAvatarFileAndMockDataURL()
+      const player = createPlayerServiceReturnsAPlayer()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
-      await playersLobbyView.get(testId('player-form')).trigger('submit')
+      await playerFillsUsernameAndSubmitsForm(playersLobbyView, 'any-username')
 
-      expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(
-        1,
-        'Player 1',
-        avatarFile,
-      )
+      expectCallsCreatePlayerServiceWithLobbyIdUsernameAvatarFile(10, 'any-username', avatarFile)
     })
 
-    test('stores user in player provider', async () => {
-      container.quizService.createPlayerByLobbyId.mockResolvedValue({
-        id: 1,
-        username: 'Player 1',
-        avatar: '/dummy_avatar.png',
-      })
+    test('stores the returned player data in player provider', async () => {
+      await playerIsInLobbyWithQuiz(10, 1)
+      createAvatarFileAndMockDataURL()
+      const player = createPlayerServiceReturnsAPlayer()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
-      await playersLobbyView.get(testId('player-form')).trigger('submit')
+      await playerFillsUsernameAndSubmitsForm(playersLobbyView, 'any-username')
 
-      expect(playerProvider.player).toEqual({
-        id: 1,
-        username: 'Player 1',
-        avatar: '/dummy_avatar.png'
-      })
+      expect(playerProvider.player).toEqual(player)
     })
 
-    test('redirects to before quiz starts page', async () => {
-      const router = getRouter()
-      container.quizService.createPlayerByLobbyId.mockResolvedValue({
-        id: 1,
-        username: 'Player 1',
-        avatar: '/dummy_avatar.png',
-      })
-      router.setParams({ quizId: 1, lobbyId: 1 })
+    test('redirects to before quiz starts view', async () => {
+      await playerIsInLobbyWithQuiz(10, 1)
+      createAvatarFileAndMockDataURL()
+      createPlayerServiceReturnsAPlayer()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await playersLobbyView.get(testId('player-username-input')).setValue('Player 1')
-      await playersLobbyView.get(testId('player-form')).trigger('submit')
+      await playerFillsUsernameAndSubmitsForm(playersLobbyView, 'any-username')
 
-      expect(router.push).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'player-lobby-before-quiz-starts',
-          params: { quizId: '1', lobbyId: '1' },
-        }),
-      )
+      expectRedirectsToPlayerLobbyBeforeQuizStartsView(playersLobbyView, 10, 1)
     })
   })
 
-  describe('when user submits a very short username', () => {
+  describe('when player submits a very short username', () => {
     test('shows an error notification', async () => {
       const playersLobbyView = mountPlayersLobbyView()
 
@@ -106,7 +71,7 @@ describe('PlayersLobbyView', () => {
     })
   })
 
-  describe('when user submits and service throws an error', () => {
+  describe('when player submits and service throws an error', () => {
     test('shows an error notification', async () => {
       const playersLobbyView = mountPlayersLobbyView()
       container.quizService.createPlayerByLobbyId.mockRejectedValue(
@@ -128,11 +93,11 @@ describe('PlayersLobbyView', () => {
   const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobby)
 
   /**
-   * Helper function to simulate user filling the username input
+   * Helper function to simulate player filling the username input
    * @param wrapper - The PlayersLobby wrapper
    * @param username - The username to fill in the input
    */
-  const userFillsUsername = async (wrapper: VueWrapper, username: string): Promise<void> => {
+  const playerFillsUsername = async (wrapper: VueWrapper, username: string): Promise<void> => {
     await wrapper.get(testId('player-username-input')).setValue(username)
     await flushPromises()
   }
@@ -157,6 +122,72 @@ describe('PlayersLobbyView', () => {
     const mockedDataURL = 'data:image/jpeg;base64,'
     vi.spyOn(FileUtils, 'fileToDataURL').mockResolvedValue(mockedDataURL)
 
+    container.avatarService.generateAvatarByString.mockResolvedValue(avatarFile)
+
     return { avatarFile, avatarDataURL: mockedDataURL }
+  }
+
+  /**
+   * player fills the username input and submits the form
+   * @param wrapper - The PlayersLobby wrapper
+   * @param username - The username to fill in the input
+   */
+  const playerFillsUsernameAndSubmitsForm = async (wrapper: VueWrapper, username: string): Promise<void> => {
+    await playerFillsUsername(wrapper, username)
+    await wrapper.get(testId('player-form')).trigger('submit')
+  }
+
+  /**
+   * Simulates the player being in a lobby with a quiz by pushing the corresponding route
+   * @param lobbyId - The ID of the lobby
+   * @param quizId - The ID of the quiz
+   */
+  const playerIsInLobbyWithQuiz = async (lobbyId: number, quizId: number) => {
+    await getRouter().push({ params: { lobbyId, quizId } })
+  }
+
+  /**
+   * Asserts that the createPlayerByLobbyId service was called with the correct lobby ID,
+   * username and avatar file
+   * @param lobbyId - The expected lobby ID
+   * @param username - The expected username
+   * @param avatarFile - The expected avatar file
+   */
+  const expectCallsCreatePlayerServiceWithLobbyIdUsernameAvatarFile =
+    (lobbyId: number, username: string, avatarFile: File,) => {
+      expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(lobbyId, username, avatarFile)
+    }
+
+  /**
+   * Player factory
+   * @param replaceAttrs - Optional attributes to override the default player values
+   */
+  const createPlayer = (replaceAttrs?: Partial<Player>): Player => {
+    const player = { id: 100, username: 'any-player-name', image: '/any-avatar-path' }
+    if (replaceAttrs) return { ...player, ...replaceAttrs }
+    return player
+  }
+
+  /**
+   * Mocks the createPlayerByLobbyId service to return a player and returns that player
+   */
+  const createPlayerServiceReturnsAPlayer = (): Player => {
+    const player = createPlayer()
+    container.quizService.createPlayerByLobbyId.mockResolvedValue(player)
+    return player
+  }
+
+  /**
+   * Assert that the player is redirected to the player lobby before quiz starts page
+   * @param lobbyId - The expected lobby ID in the route params
+   * @param quizId - The expected quiz ID in the route params
+   */
+  const expectRedirectsToPlayerLobbyBeforeQuizStartsView = (wrapper: VueWrapper, lobbyId: number, quizId: number): void => {
+    expect(wrapper.router.push).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'player-lobby-before-quiz-starts',
+        params: { quizId: quizId.toString(), lobbyId: lobbyId.toString() },
+      }),
+    )
   }
 })

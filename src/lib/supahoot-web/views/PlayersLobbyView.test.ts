@@ -6,7 +6,7 @@ import {
 import { testId } from '@/test/support/utils/html-utils'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
-import PlayersLobby from './PlayersLobby.vue'
+import PlayersLobbyView from './PlayersLobbyView.vue'
 import type { Player } from '@/lib/supahoot/quizzes/player'
 import { expectErrorNotification } from '@/test/support/utils/expect-utils'
 
@@ -83,7 +83,7 @@ describe('PlayersLobbyView', () => {
   /**
    * Mounts the PlayersLobby component and returns the wrapper
    */
-  const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobby)
+  const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobbyView)
 
   /**
    * Helper function to simulate player filling the username input

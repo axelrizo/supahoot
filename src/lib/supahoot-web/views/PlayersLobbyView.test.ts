@@ -1,4 +1,5 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
+import { createPlayer } from '@/test/support/utils/factory-utils'
 import {
   container,
   playerProvider,
@@ -149,16 +150,6 @@ describe('PlayersLobbyView', () => {
     (lobbyId: number, username: string, avatarFile: File,) => {
       expect(container.quizService.createPlayerByLobbyId).toHaveBeenCalledWith(lobbyId, username, avatarFile)
     }
-
-  /**
-   * Player factory
-   * @param replaceAttrs - Optional attributes to override the default player values
-   */
-  const createPlayer = (replaceAttrs?: Partial<Player>): Player => {
-    const player = { id: 100, username: 'any-player-name', image: '/any-avatar-path' }
-    if (replaceAttrs) return { ...player, ...replaceAttrs }
-    return player
-  }
 
   /**
    * Mocks the createPlayerByLobbyId service to return a player and returns that player

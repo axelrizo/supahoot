@@ -7,12 +7,12 @@ import {
 import { testId } from '@/test/support/utils/html-utils'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { getRouter, type RouterMock } from 'vue-router-mock'
-import PlayerLobbyBeforeQuizStarts from './PlayerLobbyBeforeQuizStartsView.vue'
+import PlayerLobbyBeforeQuizStartsView from './PlayerLobbyBeforeQuizStartsView.vue'
 
 let wrapper: VueWrapper
 let router: RouterMock
 
-describe('PlayerLobbyBeforeQuizStarts', () => {
+describe('PlayerLobbyBeforeQuizStartsView', () => {
   beforeEach(() => {
     router = getRouter()
     router.setParams({ lobbyId: '1', quizId: '1' })
@@ -30,21 +30,25 @@ describe('PlayerLobbyBeforeQuizStarts', () => {
       },
     )
 
-    wrapper = mount(PlayerLobbyBeforeQuizStarts)
+    wrapper = mount(PlayerLobbyBeforeQuizStartsView)
   })
 
-  test('success: shows player avatar', () => {
-    expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe('/dummy_avatar.png')
+  describe('when player is in lobby', () => {
+    test('shows player avatar', () => {
+      expect(wrapper.get(testId('player-avatar')).attributes('src')).toBe('/dummy_avatar.png')
+    })
+
+    test('shows player username', () => {
+      expect(wrapper.get(testId('player-username')).text()).toBe('Player 1')
+    })
   })
 
-  test('success: shows player username', () => {
-    expect(wrapper.get(testId('player-username')).text()).toBe('Player 1')
-  })
-
-  test("success: redirect to player's lobby when quiz starts", async () => {
-    expect(router.push).toHaveBeenLastCalledWith({
-      name: 'player-quiz',
-      params: { quizId: 1, lobbyId: 1 },
+  describe('when quiz starts', () => {
+    test("redirects to player's lobby", async () => {
+      expect(router.push).toHaveBeenLastCalledWith({
+        name: 'player-quiz',
+        params: { quizId: 1, lobbyId: 1 },
+      })
     })
   })
 })
@@ -56,7 +60,7 @@ describe('PlayerLobbyBeforeQuizStarts when player is not provided', () => {
 
     playerProvider.player = null
 
-    wrapper = mount(PlayerLobbyBeforeQuizStarts)
+    wrapper = mount(PlayerLobbyBeforeQuizStartsView)
   })
 
   test('error: shows error message when player is not provided', () => {

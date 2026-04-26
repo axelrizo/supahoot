@@ -1,4 +1,4 @@
-import { container, notificationProvider } from '@/test/support/setup-container-mock'
+import { container } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import HomeView from '@supahoot-web/views/HomeView.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'

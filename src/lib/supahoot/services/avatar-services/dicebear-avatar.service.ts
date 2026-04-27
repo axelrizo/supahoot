@@ -1,8 +1,9 @@
 import { botttsNeutral } from '@dicebear/collection'
 import { toJpeg } from '@dicebear/converter'
 import { createAvatar } from '@dicebear/core'
+import type { AvatarService } from '../avatar.service'
 
-export class DicebearAvatarService {
+export class DicebearAvatarService implements AvatarService {
   async generateAvatarByString(string: string) {
     const avatar = createAvatar(botttsNeutral, { seed: string })
     const buffer = await toJpeg(avatar).toArrayBuffer()

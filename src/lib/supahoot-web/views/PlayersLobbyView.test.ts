@@ -69,7 +69,7 @@ describe('PlayersLobbyView', () => {
 
   describe('when player submits and player creation fails', () => {
     test('shows an error notification', async () => {
-      createPlayerServiceFails('Error: Failed to create player')
+      createPlayerFails('Error: Failed to create player')
       const playersLobbyView = mountPlayersLobbyView()
 
       await fillSubmitPlayerCreationForm(playersLobbyView)
@@ -119,7 +119,7 @@ describe('PlayersLobbyView', () => {
    * Mocks the createPlayerByLobbyId service to throw an error with the given message
    * @param error - The error message to throw
    */
-  const createPlayerServiceFails = (error: string): void => {
+  const createPlayerFails = (error: string): void => {
     container.quizService.createPlayerByLobbyId.mockRejectedValue(new Error(error))
   }
 

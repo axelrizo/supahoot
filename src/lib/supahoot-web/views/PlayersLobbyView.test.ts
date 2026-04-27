@@ -40,7 +40,7 @@ describe('PlayersLobbyView', () => {
       const player = providePlayerFromCreationService()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await fillUsernameInput(playersLobbyView)
+      await fillSubmitPlayerCreationForm(playersLobbyView)
 
       expect(playerProvider.player).toEqual(player)
     })
@@ -51,7 +51,7 @@ describe('PlayersLobbyView', () => {
       providePlayerFromCreationService()
       const playersLobbyView = mountPlayersLobbyView()
 
-      await fillUsernameInput(playersLobbyView)
+      await fillSubmitPlayerCreationForm(playersLobbyView)
 
       redirectsPlayerToQuizLobby(playersLobbyView, lobby, quiz)
     })
@@ -110,8 +110,9 @@ describe('PlayersLobbyView', () => {
   const redirectsPlayerToQuizLobby = (wrapper: VueWrapper, lobby: Lobby, quiz: Quiz): void => {
     expect(wrapper.router.push).toHaveBeenCalledWith(
       expect.objectContaining({
-        params: { quizId: quiz.id, lobbyId: lobby.id },
-      }),
+        name: 'player-lobby-before-quiz-starts',
+        params: { quizId: quiz.id.toString(), lobbyId: lobby.id.toString() }
+      })
     )
   }
 

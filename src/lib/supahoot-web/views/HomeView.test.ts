@@ -2,7 +2,7 @@ import { container } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import HomeView from '@supahoot-web/views/HomeView.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { sendsErrorNotification } from '@/test/support/utils/expect-utils'
+import { showsErrorNotification } from '@/test/support/utils/expect-utils'
 import type { Quiz } from '@/lib/supahoot/quizzes/quiz'
 import type { Lobby } from '@/lib/supahoot/quizzes/lobby'
 import { buildLobby, buildQuiz } from '@/test/support/utils/factory-utils'
@@ -23,7 +23,7 @@ describe('HomeView', () => {
   })
 
   describe('when service throws an error and user joins', () => {
-    test('sends error notification', async () => {
+    test('shows error notification', async () => {
       const errorMessage = 'Any error'
 
       quizServiceThrowsError(errorMessage)
@@ -31,7 +31,7 @@ describe('HomeView', () => {
 
       await userJoinsLobby(homeView, buildLobby())
 
-      sendsErrorNotification(errorMessage)
+      showsErrorNotification(errorMessage)
     })
   })
 
@@ -41,7 +41,7 @@ describe('HomeView', () => {
 
       await userJoinsLobby(homeView, 'string-instead-of-number')
 
-      sendsErrorNotification('Invalid lobby id')
+      showsErrorNotification('Invalid lobby id')
     })
   })
 

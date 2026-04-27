@@ -4,7 +4,7 @@ import { mount, VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
 import PlayerLobbyBeforeQuizStartsView from './PlayerLobbyBeforeQuizStartsView.vue'
 import { createPlayer } from '@/test/support/utils/factory-utils'
-import { expectErrorNotification } from '@/test/support/utils/expect-utils'
+import { showsErrorNotification } from '@/test/support/utils/expect-utils'
 
 
 const mountPlayerLobbyBeforeQuizStartsView = (): VueWrapper => mount(PlayerLobbyBeforeQuizStartsView)
@@ -52,7 +52,7 @@ describe('PlayerLobbyBeforeQuizStartsView', () => {
       playerProvider.player = null
       mountPlayerLobbyBeforeQuizStartsView()
 
-      expectErrorNotification('Player not found')
+      showsErrorNotification('Player not found')
     })
 
     test('redirects to home', () => {

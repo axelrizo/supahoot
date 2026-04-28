@@ -1,5 +1,5 @@
 import { FileUtils } from '@/lib/supahoot/utils/file.utils'
-import { buildLobby, buildQuiz, createPlayer } from '@/test/support/utils/factory-utils'
+import { buildLobby, buildQuiz, buildPlayer } from '@/test/support/utils/factory-utils'
 import { container, playerProvider, } from '@/test/support/setup-container-mock'
 import { testId } from '@/test/support/utils/html-utils'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -13,55 +13,52 @@ import type { Quiz } from '@/lib/supahoot/quizzes/quiz'
 describe('PlayersLobbyView', () => {
   describe('when the player fills username and an avatar is provided', () => {
     test("displays avatar", async () => {
-      const avatar = provideAvatarForPlayer()
-      const playersLobbyView = mountPlayersLobbyView()
+      const avatar = avatarIsProvided()
+      const { view } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillUsernameInput(playersLobbyView)
+      await playerFillsUsername(view)
 
-      await avatarIsDisplayed(playersLobbyView, avatar)
+      await displaysAvatar(view, avatar)
     })
   })
 
-  describe('when the user is in a lobby and submits the new player form', () => {
+  describe('when player is in lobby with active quiz and submits player form', () => {
     test('creates the player', async () => {
-      const { lobby } = await playerIsInLobbyWithQuizView()
-      const avatar = provideAvatarForPlayer()
-      providePlayerFromCreationService()
-      const playersLobbyView = mountPlayersLobbyView()
+      const avatar = avatarIsProvided()
+      newPlayerIsCreatedAndProvided()
+      const { lobby, view } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillSubmitPlayerCreationForm(playersLobbyView, { username: 'any-username' })
+      await playerFillsAndSubmitsPlayerForm(view, { username: 'any-username' })
 
       createsPlayer(lobby, 'any-username', avatar)
     })
 
     test('stores the player in memory', async () => {
-      await playerIsInLobbyWithQuizView()
-      provideAvatarForPlayer()
-      const player = providePlayerFromCreationService()
-      const playersLobbyView = mountPlayersLobbyView()
+      avatarIsProvided()
+      const player = newPlayerIsCreatedAndProvided()
+      const { view } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillSubmitPlayerCreationForm(playersLobbyView)
+      await playerFillsAndSubmitsPlayerForm(view)
 
       expect(playerProvider.player).toEqual(player)
     })
 
     test('redirects player to quiz lobby', async () => {
-      const { lobby, quiz } = await playerIsInLobbyWithQuizView()
-      provideAvatarForPlayer()
-      providePlayerFromCreationService()
-      const playersLobbyView = mountPlayersLobbyView()
+      avatarIsProvided()
+      newPlayerIsCreatedAndProvided()
+      const { view, lobby, quiz } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillSubmitPlayerCreationForm(playersLobbyView)
+      await playerFillsAndSubmitsPlayerForm(view)
 
-      redirectsPlayerToQuizLobby(playersLobbyView, lobby, quiz)
+      redirectsPlayerToQuizLobby(view, lobby, quiz)
     })
   })
 
   describe('when player submits a very short username', () => {
     test('shows an error notification', async () => {
-      const playersLobbyView = mountPlayersLobbyView()
+      const { view } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillSubmitPlayerCreationForm(playersLobbyView, { username: 'abc' })
+      await playerFillsAndSubmitsPlayerForm(view, { username: 'abc' })
 
       showsErrorNotification('Username should be at least 4 characters long')
     })
@@ -70,18 +67,62 @@ describe('PlayersLobbyView', () => {
   describe('when player submits and player creation fails', () => {
     test('shows an error notification', async () => {
       createPlayerFails('Error: Failed to create player')
-      const playersLobbyView = mountPlayersLobbyView()
+      const { view } = await playerVistisLobbyWithActiveQuiz()
 
-      await fillSubmitPlayerCreationForm(playersLobbyView)
+      await playerFillsAndSubmitsPlayerForm(view)
 
       showsErrorNotification('Failed to create player')
     })
   })
 
   /**
+   * Mocks the quiz service to return a new player when creating a player by lobby id
+   * @returns The player that was "created"
+   */
+  const newPlayerIsCreatedAndProvided = (): Player => {
+    const player = buildPlayer()
+    container.quizService.createPlayerByLobbyId.mockResolvedValue(player)
+    return player
+  }
+
+  /**
+   * Simulates the player visiting the lobby with an active quiz
+   */
+  const playerVistisLobbyWithActiveQuiz = async (): Promise<{ lobby: Lobby, quiz: Quiz, view: VueWrapper }> => {
+    const lobby = buildLobby()
+    const quiz = buildQuiz()
+
+    await getRouter().push({ params: { lobbyId: lobby.id, quizId: quiz.id } })
+
+    const wrapper = mount(PlayersLobbyView)
+
+    return { lobby, quiz, view: wrapper }
+  }
+
+  /**
+   * Simulates the player filling the username input and submitting the form
+   * @param wrapper - The PlayersLobby wrapper
+   * @param player - The player attributes to fill in the form
+   */
+  const playerFillsAndSubmitsPlayerForm = async (wrapper: VueWrapper, player?: Partial<Player>) => {
+    await playerFillsUsername(wrapper, player?.username)
+
+    await wrapper.get(testId('player-form')).trigger('submit')
+  }
+
+  /**
+   * Simulates the player filling the username input in the form
+   * @param wrapper - The PlayersLobby wrapper
+   * @param username - The username to fill in the input, defaults to 'any-username'
+   */
+  const playerFillsUsername = async (wrapper: VueWrapper, username = 'any-username'): Promise<void> => {
+    await wrapper.get(testId('player-username-input')).setValue(username)
+  }
+
+  /**
    * Provides a fake avatar file for player and mocks the provider
    */
-  const provideAvatarForPlayer = (): File => {
+  const avatarIsProvided = (): File => {
     const avatar = new File([''], 'avatar.jpeg', { type: 'image/jpeg' })
     container.avatarService.generateAvatarByString.mockResolvedValue(avatar)
     return avatar
@@ -90,7 +131,7 @@ describe('PlayersLobbyView', () => {
   /**
    * Asserts that the avatar image is displayed
    */
-  const avatarIsDisplayed = async (wrapper: VueWrapper, avatar: File): Promise<void> => {
+  const displaysAvatar = async (wrapper: VueWrapper, avatar: File): Promise<void> => {
     const imageDataUrl = await FileUtils.fileToDataURL(avatar)
     const avatarImg = wrapper.get(testId('player-avatar'))
     await flushPromises()
@@ -100,7 +141,7 @@ describe('PlayersLobbyView', () => {
   /**
    * Mounts the PlayersLobby component and returns the wrapper
    */
-  const mountPlayersLobbyView = (): VueWrapper => mount(PlayersLobbyView)
+  const playerVisitsLobbyView = (): VueWrapper => mount(PlayersLobbyView)
 
   /**
    * Assert that the player is redirected to the player lobby before quiz starts page
@@ -124,48 +165,6 @@ describe('PlayersLobbyView', () => {
     container.quizService.createPlayerByLobbyId.mockRejectedValue(new Error(error))
   }
 
-  /**
-   * Simulates the player being in the player lobby view by pushing the corresponding route with a
-   * lobby and quiz, and returns the created lobby and quiz
-   */
-  const playerIsInLobbyWithQuizView = async (): Promise<{ lobby: Lobby, quiz: Quiz }> => {
-    const lobby = buildLobby()
-    const quiz = buildQuiz()
-    await getRouter().push({ params: { lobbyId: lobby.id, quizId: quiz.id } })
-    return { lobby, quiz }
-  }
-
-  type PlayerCreationForm = Partial<{ username: string }>
-
-  /**
-   * Simulates the player filling the username input in the form
-   * @param wrapper - The PlayersLobby wrapper
-   * @param username - The username to fill in the input, defaults to 'any-username'
-   */
-  const fillUsernameInput = async (wrapper: VueWrapper, username = 'any-username'): Promise<void> => {
-    await wrapper.get(testId('player-username-input')).setValue(username)
-  }
-
-  /**
-   * Simulates the player filling the username input and submitting the form
-   * @param wrapper - The PlayersLobby wrapper
-   * @param attrs - Optional attributes to fill in the form, such as username
-   */
-  const fillSubmitPlayerCreationForm = async (wrapper: VueWrapper, attrs?: PlayerCreationForm): Promise<void> => {
-    await fillUsernameInput(wrapper, attrs?.username)
-
-    await wrapper.get(testId('player-form')).trigger('submit')
-  }
-
-  /**
-   * Mocks the creation of a player by the server
-   * @returns The fake created player returned by the mocked service
-   */
-  const providePlayerFromCreationService = (): Player => {
-    const player = createPlayer()
-    container.quizService.createPlayerByLobbyId.mockResolvedValue(player)
-    return player
-  }
 
   /**
    * Asserts that the player was created with correct attributes

@@ -8,38 +8,33 @@ import type { Lobby } from '@/lib/supahoot/quizzes/lobby'
 import { buildLobby, buildQuiz } from '@/test/support/utils/factory-utils'
 
 describe('HomeView', () => {
-  describe('when lobby exists running a quiz and user joins', () => {
+  describe('when lobby has an active quiz and player joins', () => {
     test('redirects to lobby', async () => {
-      const quiz = buildQuiz()
-      const lobby = buildLobby()
+      const { lobby, quiz } = lobbyWithActiveQuiz()
+      const view = playerVisitsHome()
 
-      lobbyRunningQuiz(quiz)
-      const homeView = mountHomeView()
+      await playerJoinsLobby(view, lobby)
 
-      await userJoinsLobby(homeView, lobby)
-
-      redirectsToLobbyWithRunningQuiz(homeView, lobby, quiz)
+      expectsRedirectToLobby(view, lobby, quiz)
     })
   })
 
   describe('when service throws an error and user joins', () => {
     test('shows error notification', async () => {
-      const errorMessage = 'Any error'
+      quizServiceThrowsError('Any error')
+      const view = playerVisitsHome()
 
-      quizServiceThrowsError(errorMessage)
-      const homeView = mountHomeView()
+      await playerJoinsLobby(view, buildLobby())
 
-      await userJoinsLobby(homeView, buildLobby())
-
-      showsErrorNotification(errorMessage)
+      showsErrorNotification('Any error')
     })
   })
 
-  describe('when the user introduces an invalid lobby id', () => {
-    test('sends error notification', async () => {
-      const homeView = mountHomeView()
+  describe('when the user entes an invalid lobby id', () => {
+    test('shows error notification', async () => {
+      const view = playerVisitsHome()
 
-      await userJoinsLobby(homeView, 'string-instead-of-number')
+      await playerJoinsLobby(view, 'string-instead-of-number')
 
       showsErrorNotification('Invalid lobby id')
     })
@@ -49,16 +44,19 @@ describe('HomeView', () => {
    * Mounts HomeView
    * @returns The mounted HomeView component
    */
-  const mountHomeView = (): VueWrapper => mount(HomeView)
+  const playerVisitsHome = (): VueWrapper => mount(HomeView)
 
   /**
    * Each lobby has a quiz associated with it, so we mock the returned quiz simulating
    * that the lobby has that quiz running.
    * @param quizId The quiz id returned by the service
    */
-  const lobbyRunningQuiz = (quiz: Quiz): void => {
+  const lobbyWithActiveQuiz = (): { quiz: Quiz, lobby: Lobby } => {
+    const quiz = buildQuiz()
+    const lobby = buildLobby()
     container.quizService.getQuizByLobbyId.mockResolvedValue(quiz)
-    return
+
+    return { quiz, lobby }
   }
 
   /**
@@ -75,7 +73,7 @@ describe('HomeView', () => {
    * @param wrapper The mounted HomeView component
    * @param lobby The lobby the user is trying to join
    */
-  const userJoinsLobby = async (wrapper: VueWrapper, lobby: Lobby | string): Promise<void> => {
+  const playerJoinsLobby = async (wrapper: VueWrapper, lobby: Lobby | string): Promise<void> => {
     const lobbyId = typeof lobby === 'string' ? lobby : lobby.id.toString()
 
     await wrapper.get(testId('join-lobby-input')).setValue(lobbyId)
@@ -89,7 +87,7 @@ describe('HomeView', () => {
    * @param lobbyId The lobby id the user is trying to join
    * @param quizId The quiz id associated with the lobby
    */
-  const redirectsToLobbyWithRunningQuiz = (wrapper: VueWrapper, lobby: Lobby, quiz: Quiz): void => {
+  const expectsRedirectToLobby = (wrapper: VueWrapper, lobby: Lobby, quiz: Quiz): void => {
     expect(wrapper.router.push).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'player-lobby', params: { lobbyId: lobby.id.toString(), quizId: quiz.id.toString() } })
     )

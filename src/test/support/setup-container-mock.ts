@@ -1,12 +1,12 @@
+import type { NotificationProvider } from '@/lib/supahoot-web/providers/notification-provider'
 import type { PlayerProvider } from '@/lib/supahoot-web/providers/player-provider'
 import type { AvatarService } from '@/lib/supahoot/services/avatar.service'
+import type { ServicesContainer } from '@/lib/supahoot/services/container'
 import type { QuizService } from '@/lib/supahoot/services/quiz.service'
 import { config } from '@vue/test-utils'
 import { vi } from 'vitest'
 
-type MockService<TypeService> = Record<keyof TypeService, ReturnType<typeof vi.fn>>
-
-const MockQuizService: MockService<QuizService> = {
+const MockQuizService: QuizService = {
   getQuizzes: vi.fn(),
   createLobby: vi.fn(),
   getPlayersByLobby: vi.fn(),
@@ -29,16 +29,16 @@ const MockQuizService: MockService<QuizService> = {
   getAwardsDashboard: vi.fn(),
 }
 
-const MockAvatarService: MockService<AvatarService> = {
+const MockAvatarService: AvatarService = {
   generateAvatarByString: vi.fn(),
 }
 
-export const container = {
+export const container: ServicesContainer = {
   quizService: MockQuizService,
   avatarService: MockAvatarService,
 }
 
-export const notificationProvider = {
+export const notificationProvider: NotificationProvider = {
   showNotification: vi.fn(),
 }
 

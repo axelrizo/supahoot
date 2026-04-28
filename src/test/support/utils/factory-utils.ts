@@ -25,6 +25,9 @@ export const buildLobby = (overrides?: Partial<Lobby>): Lobby => ({
  * Player factory
  * @param overrides - Optional attributes to override the default player values
  */
-export const createPlayer = (overrides?: Partial<Player>): Player => ({
-  id: 100, username: 'any-player-name', image: '/any-avatar-path', ...overrides
+export const buildPlayer = (overrides?: Partial<Player>): Player => ({
+  id: 100,
+  username: 'any-player-name',
+  image: '/any-avatar-path',
+  ...overrides
 })

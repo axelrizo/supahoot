@@ -3,64 +3,133 @@ import { testId } from '@/test/support/utils/html-utils'
 import { mount, VueWrapper } from '@vue/test-utils'
 import { getRouter } from 'vue-router-mock'
 import PlayerLobbyBeforeQuizStartsView from './PlayerLobbyBeforeQuizStartsView.vue'
-import { createPlayer } from '@/test/support/utils/factory-utils'
+import { buildLobby, buildPlayer, buildQuiz } from '@/test/support/utils/factory-utils'
 import { showsErrorNotification } from '@/test/support/utils/expect-utils'
-
-
-const mountPlayerLobbyBeforeQuizStartsView = (): VueWrapper => mount(PlayerLobbyBeforeQuizStartsView)
-
-const playerIsInLobbyWithQuiz = async (quizId: number, lobbyId: number) => {
-  await getRouter().push({ params: { quizId, lobbyId } })
-}
+import type { Player } from '@/lib/supahoot/quizzes/player'
+import type { Lobby } from '@/lib/supahoot/quizzes/lobby'
+import type { Quiz } from '@/lib/supahoot/quizzes/quiz'
 
 describe('PlayerLobbyBeforeQuizStartsView', () => {
-  describe('when player is in lobby', () => {
-    test('shows player avatar', () => {
-      const player = createPlayer()
-      playerProvider.player = player
-      const playerLobbyView = mountPlayerLobbyBeforeQuizStartsView()
+  describe('when has player stored in memory and player visits view', () => {
+    test('shows player avatar stored in memory', async () => {
+      const player = playerIsStoredInMemory()
 
-      expect(playerLobbyView.get(testId('player-avatar')).attributes('src')).toBe(player.image)
+      const { view } = await playerVisitsView()
+
+      showsPlayerAvatar(view, player)
     })
 
-    test('shows player username', () => {
-      const player = createPlayer()
-      playerProvider.player = player
-      const playerLobbyView = mountPlayerLobbyBeforeQuizStartsView()
+    test('shows player username', async () => {
+      const player = playerIsStoredInMemory()
 
-      expect(playerLobbyView.get(testId('player-username')).text()).toBe(player.username)
+      const { view } = await playerVisitsView()
+
+      showsPlayerUsername(view, player)
     })
   })
 
   describe('when quiz starts', () => {
     test("redirects to player's quiz", async () => {
-      playerIsInLobbyWithQuiz(1, 10)
-      container.quizService.listenQuizStart.mockImplementation(
-        (_lobbyId: number, callback: () => void) => {
-          callback()
-        },
-      )
-      const playerLobbyView = mountPlayerLobbyBeforeQuizStartsView()
-      expect(playerLobbyView.router.push).toHaveBeenLastCalledWith(
-        expect.objectContaining({ name: 'player-quiz', params: { quizId: 1, lobbyId: 10 }, })
-      )
+      quizStarts()
+
+      const { view, quiz, lobby } = await playerVisitsView()
+
+      rediretsToPlayerQuiz(view, lobby, quiz)
     })
   })
 
   describe('when player info is not provided', () => {
-    test('shows error message', () => {
-      playerProvider.player = null
-      mountPlayerLobbyBeforeQuizStartsView()
+    test('shows error notification', async () => {
+      playerIsNotStoredInMemory()
+
+      await playerVisitsView()
 
       showsErrorNotification('Player not found')
     })
 
-    test('redirects to home', () => {
-      playerProvider.player = null
-      const playerLobbyView = mountPlayerLobbyBeforeQuizStartsView()
+    test('redirects to home', async () => {
+      playerIsNotStoredInMemory()
 
-      expect(playerLobbyView.router.push).toHaveBeenCalledWith(expect.objectContaining({ name: 'home' }))
+      const { view } = await playerVisitsView()
+
+      redirectsToHome(view)
     })
   })
+
+  /**
+   * Simulates the player visiting the lobby before the quiz starts.
+   */
+  const playerVisitsView = async () => {
+    const quiz = buildQuiz()
+    const lobby = buildLobby()
+
+    await getRouter().push({ params: { quizId: quiz.id, lobbyId: lobby.id } })
+    const wrapper = mount(PlayerLobbyBeforeQuizStartsView)
+
+    return { view: wrapper, quiz, lobby }
+  }
+
+  /**
+   * Expects the player avatar to be shown in the view
+   */
+  const showsPlayerAvatar = (wrapper: VueWrapper, player: Player) => {
+    const avatar = wrapper.get(testId('player-avatar'))
+
+    expect(avatar.attributes('src')).toBe(player.image)
+  }
+
+  /**
+   * Simulates the player having their info stored in memory   */
+  const playerIsStoredInMemory = () => {
+    const player = buildPlayer()
+    playerProvider.player = player
+    return player
+  }
+
+  /**
+   * Simulates the player NOT having their info stored in memory
+   */
+  const playerIsNotStoredInMemory = () => {
+    playerProvider.player = null
+  }
+
+  /**
+   * Expects the player username to be shown in the view
+   */
+  const showsPlayerUsername = (wrapper: VueWrapper, player: Player) => {
+    const username = wrapper.get(testId('player-username'))
+
+    expect(username.text()).toBe(player.username)
+  }
+
+  /**
+   * Mocks the quiz service to call the quiz start callback, simulating the quiz starting
+   */
+  const quizStarts = () => {
+    container.quizService.listenQuizStart.mockImplementation(
+      (_lobbyId: number, callback: () => void) => {
+        callback()
+      },
+    )
+  }
+
+  /**
+   * Expects the user to be redirected to home
+   */
+  const redirectsToHome = (view: VueWrapper) => {
+    expect(view.router.push).toHaveBeenCalledWith(expect.objectContaining({ name: 'home' }))
+  }
+
+  /**
+   * Expects the user to be redirected to player quiz
+   */
+  const rediretsToPlayerQuiz = (view: VueWrapper, lobby: Lobby, quiz: Quiz) => {
+    const quizId = quiz.id
+    const lobbyId = lobby.id
+
+    expect(view.router.push).toHaveBeenLastCalledWith(
+      expect.objectContaining({ name: 'player-quiz', params: { quizId, lobbyId }, })
+    )
+  }
 })
 
